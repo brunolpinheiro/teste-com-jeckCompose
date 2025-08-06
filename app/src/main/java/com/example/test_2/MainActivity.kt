@@ -1,18 +1,16 @@
 package com.example.test_2
 
 import android.os.Bundle
-import androidx.navigation.compose.NavHost
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,15 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.composetutorial.ui.theme.ComposeTutorialTheme
-
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,16 +35,19 @@ class MainActivity : ComponentActivity() {
             ComposeTutorialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background // Usa o fundo do tema
-
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "splash") {
                         composable("splash") {
-                            SplashScreen(onNavigateToHome = { navController.navigate("home") })
+                            SplashScreen( navController = navController)
                         }
-                        composable("home") {
-                            ConectPrinters()
+
+                        composable("connect_printers") {
+                            ConectPrinters(navController = navController)
+                        }
+                        composable("printer_details") {
+                            Printers()
                         }
                     }
                 }
@@ -58,13 +56,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewSplashScreen() {
-    ComposeTutorialTheme {
-       ConectPrinters()
-
-    }
-}

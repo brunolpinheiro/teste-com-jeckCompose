@@ -16,7 +16,7 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = Color.White, // Texto branco no botão
     background = Color.Black, // Fundo preto
     onSurface = Color.White, // Texto branco em fundo escuro
-   
+    secondary = Color(0xFF343A40)
 )
 
 // Definir uma tipografia personalizada

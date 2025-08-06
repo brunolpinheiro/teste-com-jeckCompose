@@ -28,13 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.navigation.NavController
 import com.example.composetutorial.ui.theme.ComposeTutorialTheme
 
 
 
 
 @Composable
-public fun SplashScreen(onNavigateToHome: () -> Unit) {
+public fun SplashScreen(navController: NavController) {
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
@@ -71,7 +72,7 @@ public fun SplashScreen(onNavigateToHome: () -> Unit) {
                 modifier = Modifier.padding(all = 16.dp)
             )
             Button(
-                onClick = { onNavigateToHome() },
+                onClick = {navController.navigate("connect_printers") },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
