@@ -47,8 +47,13 @@ class MainActivity : ComponentActivity() {
                             ConectPrinters(navController = navController)
                         }
                         composable("printer_details") {
-                            Printers()
+                            Printers(navController = navController)
                         }
+
+                        composable ("resgistrationProducts"){
+                            ResgistrationProducts(navController = navController)
+                        }
+
                     }
                 }
             }

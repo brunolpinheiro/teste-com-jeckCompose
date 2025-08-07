@@ -18,19 +18,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composetutorial.ui.theme.ComposeTutorialTheme
 
 @Composable
-fun Printers() {
-    var productName by remember { mutableStateOf("") }
-    var responsible by remember { mutableStateOf("") }
-    var manufactureDate by remember { mutableStateOf("") }
-    var expirationDate by remember { mutableStateOf("") }
+fun Printers(navController: NavController) {
+    var printerNameInput by remember { mutableStateOf("") }
+    var ipAddress by remember { mutableStateOf("") }
+    var port by remember { mutableStateOf("") }
+    var comment by remember { mutableStateOf("") }
 
     ComposeTutorialTheme {
         Column(
@@ -42,54 +40,46 @@ fun Printers() {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Imprimir Etiqueta",
+                text = "Detalhes da Impressora",
                 fontSize = 24.sp,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.headlineMedium
             )
 
             OutlinedTextField(
-                value = productName,
-                onValueChange = { productName = it },
-                label = { Text("Nome do Produto") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Campo para nome do produto" },
+                value = printerNameInput,
+                onValueChange = { printerNameInput = it },
+                label = { Text("Nome da Impressora") },
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             OutlinedTextField(
-                value = responsible,
-                onValueChange = { responsible = it },
-                label = { Text("Responsável") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Campo para responsável" },
+                value = ipAddress,
+                onValueChange = { ipAddress = it },
+                label = { Text("Endereço IP") },
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             OutlinedTextField(
-                value = manufactureDate,
-                onValueChange = { manufactureDate = it },
-                label = { Text("Data de Fabricação") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Campo para data de fabricação" },
+                value = port,
+                onValueChange = { port = it },
+                label = { Text("Porta") },
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             OutlinedTextField(
-                value = expirationDate,
-                onValueChange = { expirationDate = it },
-                label = { Text("Validade") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Campo para validade" },
+                value = comment,
+                onValueChange = { comment = it },
+                label = { Text("Comentário") },
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             Button(
-                onClick = { /* Ação para imprimir etiqueta */ },
+                onClick = { /* Ação do botão, ex: salvar ou conectar */ },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -100,14 +90,14 @@ fun Printers() {
                     .padding(top = 16.dp)
             ) {
                 Text(
-                    text = "Imprimir",
+                    text = "Salvar",
                     modifier = Modifier.padding(10.dp),
                     style = MaterialTheme.typography.labelLarge
                 )
             }
 
             Button(
-                onClick = { },
+                onClick = { navController.popBackStack() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary

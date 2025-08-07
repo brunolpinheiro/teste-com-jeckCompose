@@ -132,28 +132,47 @@ fun ConectPrinters(navController: NavController) {
             }
 
             Button(
-                onClick = { searchForPrinters() },
+                onClick = { navController.navigate("resgistrationProducts") },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.padding(top = 50.dp, bottom = 50.dp),
-                enabled = !loading // Habilita o botão se não estiver carregando
+
             ) {
-                if (showPrinters && selectedPrinter != null) {
+
                     Text(
-                        text = "Conectar",
+                        text = "Tela de cadastrado" +
+                                "",
                         modifier = Modifier.padding(10.dp),
                         style = MaterialTheme.typography.labelLarge
                     )
-                } else {
-                    Text(
-                        text = "Descobrir",
-                        modifier = Modifier.padding(10.dp),
-                        style = MaterialTheme.typography.labelLarge
-                    )
+
                 }
+                Button(
+                    onClick = { searchForPrinters() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.padding(top = 50.dp, bottom = 50.dp),
+                    enabled = !loading // Habilita o botão se não estiver carregando
+                ) {
+                    if (showPrinters && selectedPrinter != null) {
+                        Text(
+                            text = "Conectar",
+                            modifier = Modifier.padding(10.dp),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    } else {
+                        Text(
+                            text = "Descobrir",
+                            modifier = Modifier.padding(10.dp),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
             }
         }
     }
