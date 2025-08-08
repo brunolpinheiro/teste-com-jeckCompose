@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,11 +13,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -53,7 +53,6 @@ fun ResgistrationProducts(navController: NavController) {
 
     var newProductName by remember { mutableStateOf("") }
     var selectedSector by remember { mutableStateOf("Copa") }
-    var showSectorDropdown by remember { mutableStateOf(false) }
     val products by viewModel?.products ?: remember { mutableStateOf(emptyList()) }
 
     ComposeTutorialTheme {
@@ -64,30 +63,7 @@ fun ResgistrationProducts(navController: NavController) {
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         titleContentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    actions = {
-                        Button(
-                            onClick = {
-                                viewModel?.let {
-                                    scope.launch {
-                                        try {
-                                            it.loadProducts(selectedSector)
-                                        } catch (e: Exception) {
-                                            Log.e("ResgistrationProducts", "Erro ao carregar produtos: ${e.message}")
-                                        }
-                                    }
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.onSecondary
-                            ),
-                            modifier = Modifier.padding(end = 8.dp),
-                            enabled = viewModel != null
-                        ) {
-                            Text("Carregar Produtos")
-                        }
-                    }
+                    )
                 )
             }
         ) { padding ->
@@ -148,49 +124,71 @@ fun ResgistrationProducts(navController: NavController) {
                     singleLine = true
                 )
 
-                OutlinedTextField(
-                    value = selectedSector,
-                    onValueChange = {},
-                    label = { Text("Setor") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showSectorDropdown = true }
-                        .semantics { contentDescription = "Selecionar setor" },
-                    readOnly = true
+                Text(
+                    text = "Selecione o Setor",
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyLarge
                 )
-                DropdownMenu(
-                    expanded = showSectorDropdown,
-                    onDismissRequest = { showSectorDropdown = false },
-                    modifier = Modifier.fillMaxWidth()
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("Copa", "Cozinha").forEach { sector ->
-                        DropdownMenuItem(
-                            text = { Text(sector) },
-                            onClick = {
-                                selectedSector = sector
-                                showSectorDropdown = false
-                                viewModel?.let {
-                                    scope.launch {
-                                        try {
-                                            it.loadProducts(sector)
-                                        } catch (e: Exception) {
-                                            Log.e("ResgistrationProducts", "Erro ao carregar produtos: ${e.message}")
+                    listOf("Cozinha", "Sushi", "Copa").forEach { sector ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selectedSector = sector
+                                    viewModel?.let {
+                                        scope.launch {
+                                            try {
+                                                it.loadProducts(sector)
+                                            } catch (e: Exception) {
+                                                Log.e("ResgistrationProducts", "Erro ao carregar produtos: ${e.message}")
+                                            }
                                         }
                                     }
-                                }
-                            }
-                        )
+                                },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = selectedSector == sector,
+                                onClick = {
+                                    selectedSector = sector
+                                    viewModel?.let {
+                                        scope.launch {
+                                            try {
+                                                it.loadProducts(sector)
+                                            } catch (e: Exception) {
+                                                Log.e("ResgistrationProducts", "Erro ao carregar produtos: ${e.message}")
+                                            }
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.semantics { contentDescription = "Selecionar setor $sector" }
+                            )
+                            Text(
+                                text = sector,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
                     }
                 }
 
                 Button(
                     onClick = {
-                        if (newProductName.isNotBlank() && viewModel != null) {
+                        if (newProductName.isNotBlank() && selectedSector.isNotBlank() && viewModel != null) {
                             scope.launch {
                                 try {
                                     val uid = Random.nextInt(1, 100)
                                     viewModel.insertProduct(uid, newProductName, selectedSector)
                                     newProductName = ""
+                                    selectedSector = "Copa" // Resetar para um valor padrão
+                                    viewModel.loadProducts("Copa") // Recarregar a lista com o setor padrão
                                 } catch (e: Exception) {
                                     Log.e("ResgistrationProducts", "Erro ao cadastrar produto: ${e.message}")
                                 }
@@ -203,7 +201,7 @@ fun ResgistrationProducts(navController: NavController) {
                     ),
                     shape = MaterialTheme.shapes.medium,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = newProductName.isNotBlank() && viewModel != null
+                    enabled = newProductName.isNotBlank() && selectedSector.isNotBlank() && viewModel != null
                 ) {
                     Text(
                         text = "Cadastrar Produto",

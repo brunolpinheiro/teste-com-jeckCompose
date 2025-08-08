@@ -50,6 +50,10 @@ class MainActivity : ComponentActivity() {
                             Printers(navController = navController)
                         }
 
+                        composable ( "showProducts" ){
+                            ShowProducts(navController = navController)
+                        }
+
                         composable ("resgistrationProducts"){
                             ResgistrationProducts(navController = navController)
                         }

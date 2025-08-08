@@ -150,6 +150,27 @@ fun ConectPrinters(navController: NavController) {
                     )
 
                 }
+
+            Button(
+                onClick = { navController.navigate("showProducts") },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.padding(top = 50.dp, bottom = 50.dp),
+
+                ) {
+
+                Text(
+                    text = "Vizualizar os produtos" +
+                            "",
+                    modifier = Modifier.padding(10.dp),
+                    style = MaterialTheme.typography.labelLarge
+                )
+
+            }
+
                 Button(
                     onClick = { searchForPrinters() },
                     colors = ButtonDefaults.buttonColors(
