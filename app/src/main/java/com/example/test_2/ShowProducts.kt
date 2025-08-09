@@ -44,6 +44,7 @@ import com.example.test_2.data_db.ProductViewModel
 import com.example.test_2.data_db.Products
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +63,10 @@ fun ShowProducts(navController: NavController) {
     var editProductSector by remember { mutableStateOf("") }
     var showEditSectorDropdown by remember { mutableStateOf(false) }
     val products by viewModel?.products ?: remember { mutableStateOf(emptyList()) }
+
+    // Carregar produtos com base no setor selecionado
+    // No início do composable
+
 
     ComposeTutorialTheme {
         Scaffold(
@@ -95,16 +100,20 @@ fun ShowProducts(navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("Cozinha", "Sushi", "Copa").forEach { sector ->
+                    listOf("Todos","Cozinha", "Sushi", "Copa").forEach { sector ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
                                     selectedSector = sector
-                                    viewModel?.let {
+                                    viewModel?.let { vm ->
                                         scope.launch {
                                             try {
-                                                it.loadProducts(sector)
+                                                if (selectedSector == "Todos") {
+                                                    vm.getAll() // Chamada sem ?. pois vm é não nulo
+                                                } else {
+                                                    vm.loadProducts(sector) // Chamada sem ?. pois vm é não nulo
+                                                }
                                             } catch (e: Exception) {
                                                 Log.e("ShowProducts", "Erro ao carregar produtos: ${e.message}")
                                             }
@@ -117,15 +126,20 @@ fun ShowProducts(navController: NavController) {
                                 selected = selectedSector == sector,
                                 onClick = {
                                     selectedSector = sector
-                                    viewModel?.let {
+                                    viewModel?.let { vm ->
                                         scope.launch {
                                             try {
-                                                it.loadProducts(sector)
+                                                if (selectedSector == "Todos") {
+                                                    vm.getAll() // Chamada sem ?. pois vm é não nulo
+                                                } else {
+                                                    vm.loadProducts(sector) // Chamada sem ?. pois vm é não nulo
+                                                }
                                             } catch (e: Exception) {
                                                 Log.e("ShowProducts", "Erro ao carregar produtos: ${e.message}")
                                             }
                                         }
                                     }
+
                                 },
                                 modifier = Modifier.semantics { contentDescription = "Selecionar setor $sector" }
                             )
@@ -223,6 +237,7 @@ fun ShowProducts(navController: NavController) {
                                     scope.launch {
                                         try {
                                             it.deleteProduct(productToDelete!!)
+                                            selectedSector = "Todos"
                                             showDeleteDialog = false
                                         } catch (e: Exception) {
                                             Log.e("ShowProducts", "Erro ao deletar produto: ${e.message}")

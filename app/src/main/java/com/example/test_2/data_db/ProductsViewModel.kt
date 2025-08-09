@@ -26,6 +26,16 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
         }
     }
 
+    fun findByName(name: String): Boolean {
+        return try {
+            database.productDao().findByName(name)
+        } catch (e: Exception) {
+            Log.e("ProductViewModel", "Não foi possível verificar o nome do produto: ${e.message}")
+            false
+        }
+    }
+
+
     fun insertProduct(uid: Int, name: String, sector: String) {
         viewModelScope.launch {
             try {
@@ -55,6 +65,19 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
                 loadProducts(product.sector)
             } catch (e: Exception) {
                 Log.e("ProductViewModel", "Erro ao deletar produto: ${e.message}")
+            }
+        }
+    }
+
+    fun getAll() {
+        viewModelScope.launch {
+            try {
+                database.productDao().getAll().collectLatest { products ->
+                    _products.value = products ?: emptyList()
+                }
+            } catch (e: Exception) {
+                Log.e("ProductViewModel", "Erro ao carregar todos os produtos: ${e.message}")
+                _products.value = emptyList()
             }
         }
     }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,6 +20,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -52,7 +54,8 @@ fun ResgistrationProducts(navController: NavController) {
     val viewModel = remember { database?.let { ProductViewModel(it) } }
 
     var newProductName by remember { mutableStateOf("") }
-    var selectedSector by remember { mutableStateOf("Copa") }
+    var selectedSector by remember { mutableStateOf("Todos") }
+    var showSuccessDialog by remember { mutableStateOf(false) } // Estado para o diálogo de sucesso
     val products by viewModel?.products ?: remember { mutableStateOf(emptyList()) }
 
     ComposeTutorialTheme {
@@ -83,13 +86,6 @@ fun ResgistrationProducts(navController: NavController) {
                         fontSize = 16.sp
                     )
                 }
-
-                Text(
-                    text = "Produtos Cadastrados",
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyLarge
-                )
 
                 LazyColumn(
                     modifier = Modifier
@@ -141,15 +137,6 @@ fun ResgistrationProducts(navController: NavController) {
                                 .fillMaxWidth()
                                 .clickable {
                                     selectedSector = sector
-                                    viewModel?.let {
-                                        scope.launch {
-                                            try {
-                                                it.loadProducts(sector)
-                                            } catch (e: Exception) {
-                                                Log.e("ResgistrationProducts", "Erro ao carregar produtos: ${e.message}")
-                                            }
-                                        }
-                                    }
                                 },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -157,15 +144,6 @@ fun ResgistrationProducts(navController: NavController) {
                                 selected = selectedSector == sector,
                                 onClick = {
                                     selectedSector = sector
-                                    viewModel?.let {
-                                        scope.launch {
-                                            try {
-                                                it.loadProducts(sector)
-                                            } catch (e: Exception) {
-                                                Log.e("ResgistrationProducts", "Erro ao carregar produtos: ${e.message}")
-                                            }
-                                        }
-                                    }
                                 },
                                 modifier = Modifier.semantics { contentDescription = "Selecionar setor $sector" }
                             )
@@ -181,18 +159,27 @@ fun ResgistrationProducts(navController: NavController) {
 
                 Button(
                     onClick = {
-                        if (newProductName.isNotBlank() && selectedSector.isNotBlank() && viewModel != null) {
+                        if (newProductName.isNotBlank() && selectedSector.isNotBlank() && selectedSector != "Todos" && viewModel != null) {
                             scope.launch {
                                 try {
-                                    val uid = Random.nextInt(1, 100)
-                                    viewModel.insertProduct(uid, newProductName, selectedSector)
-                                    newProductName = ""
-                                    selectedSector = "Copa" // Resetar para um valor padrão
-                                    viewModel.loadProducts("Copa") // Recarregar a lista com o setor padrão
+                                    // Verifica se o produto já existe
+                                    val productExists = viewModel.findByName(newProductName)
+                                    if (productExists) {
+                                        showSuccessDialog = false
+                                    } else {
+                                        val uid = Random.nextInt(1, 100)
+                                        viewModel.insertProduct(uid, newProductName, selectedSector)
+                                        newProductName = ""
+                                        showSuccessDialog = true
+                                    }
                                 } catch (e: Exception) {
                                     Log.e("ResgistrationProducts", "Erro ao cadastrar produto: ${e.message}")
                                 }
                             }
+
+
+
+
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -201,7 +188,7 @@ fun ResgistrationProducts(navController: NavController) {
                     ),
                     shape = MaterialTheme.shapes.medium,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = newProductName.isNotBlank() && selectedSector.isNotBlank() && viewModel != null
+                    enabled = newProductName.isNotBlank() && selectedSector.isNotBlank() && selectedSector != "Todos" && viewModel != null
                 ) {
                     Text(
                         text = "Cadastrar Produto",
@@ -225,6 +212,25 @@ fun ResgistrationProducts(navController: NavController) {
                         text = "Voltar",
                         modifier = Modifier.padding(10.dp),
                         style = MaterialTheme.typography.labelLarge
+                    )
+                }
+
+                // Diálogo de sucesso
+                if (showSuccessDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showSuccessDialog = false },
+                        title = { Text("Sucesso") },
+                        text = { Text("Produto cadastrado com sucesso!") },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showSuccessDialog = false
+                                    navController.popBackStack() // Redireciona após fechar o diálogo
+                                }
+                            ) {
+                                Text("OK")
+                            }
+                        }
                     )
                 }
             }
