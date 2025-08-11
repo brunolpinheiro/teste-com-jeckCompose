@@ -33,7 +33,42 @@ abstract class AppDatabase : RoomDatabase() {
                             scope.launch(Dispatchers.IO) {
                                 try {
                                     val dao = INSTANCE?.productDao()
-                                    dao?.insertProduct(Products(uid = 0, name = "Suco de Laranja", sector = "Copa"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Salmão", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Tilapia", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Prego", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Atum", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Povo", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Nigiri", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Couve", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Doritos", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Batata", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Alho Poro", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Wasabi", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Gengibre", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Cebola cebolinha", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Morango", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Castinha", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Goiabada", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Abacaxi", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Nori", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Filadelfia", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Ceviti", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Molho Carpatio", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Vinho", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Maracuja", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Geleia", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Mel", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Gegilin", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Pimenta", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Leite Condensado", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Tare", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Romeu", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Ovos", sector = "Sushi"))
+                                    dao?.insertProduct(Products(uid = 0, name = "Creme Chees", sector = "Sushi"))
+
+
+
+
                                 } catch (e: Exception) {
                                     Log.e("AppDatabase", "Erro ao inserir dados iniciais: ${e.message}")
                                 }
