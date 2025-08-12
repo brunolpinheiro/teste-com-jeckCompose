@@ -61,12 +61,23 @@ fun ShowProducts(navController: NavController) {
     var productToDelete by remember { mutableStateOf<Products?>(null) }
     var editProductName by remember { mutableStateOf("") }
     var editProductSector by remember { mutableStateOf("") }
+    var editProductFabrication by remember { mutableStateOf("") }
+    var editProductValidity by remember { mutableStateOf("") }
     var showEditSectorDropdown by remember { mutableStateOf(false) }
     val products by viewModel?.products ?: remember { mutableStateOf(emptyList()) }
 
-    // Carregar produtos com base no setor selecionado
-    // No início do composable
-
+    // Carregar todos os produtos ao iniciar
+    LaunchedEffect(Unit) {
+        viewModel?.let { vm ->
+            scope.launch {
+                try {
+                    vm.getAll()
+                } catch (e: Exception) {
+                    Log.e("ShowProducts", "Erro ao carregar produtos: ${e.message}")
+                }
+            }
+        }
+    }
 
     ComposeTutorialTheme {
         Scaffold(
@@ -100,7 +111,7 @@ fun ShowProducts(navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("Todos","Cozinha", "Sushi", "Copa").forEach { sector ->
+                    listOf("Todos", "Cozinha", "Sushi", "Copa").forEach { sector ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -110,9 +121,9 @@ fun ShowProducts(navController: NavController) {
                                         scope.launch {
                                             try {
                                                 if (selectedSector == "Todos") {
-                                                    vm.getAll() // Chamada sem ?. pois vm é não nulo
+                                                    vm.getAll()
                                                 } else {
-                                                    vm.loadProducts(sector) // Chamada sem ?. pois vm é não nulo
+                                                    vm.loadProducts(sector)
                                                 }
                                             } catch (e: Exception) {
                                                 Log.e("ShowProducts", "Erro ao carregar produtos: ${e.message}")
@@ -130,16 +141,15 @@ fun ShowProducts(navController: NavController) {
                                         scope.launch {
                                             try {
                                                 if (selectedSector == "Todos") {
-                                                    vm.getAll() // Chamada sem ?. pois vm é não nulo
+                                                    vm.getAll()
                                                 } else {
-                                                    vm.loadProducts(sector) // Chamada sem ?. pois vm é não nulo
+                                                    vm.loadProducts(sector)
                                                 }
                                             } catch (e: Exception) {
                                                 Log.e("ShowProducts", "Erro ao carregar produtos: ${e.message}")
                                             }
                                         }
                                     }
-
                                 },
                                 modifier = Modifier.semantics { contentDescription = "Selecionar setor $sector" }
                             )
@@ -152,8 +162,6 @@ fun ShowProducts(navController: NavController) {
                         }
                     }
                 }
-
-
 
                 LazyColumn(
                     modifier = Modifier
@@ -170,7 +178,7 @@ fun ShowProducts(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${product.name} - ${product.sector}",
+                                text = "${product.name} - ${product.sector}- ${product.fabrication}",
                                 fontSize = 18.sp, // Fonte maior
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f)
@@ -181,6 +189,8 @@ fun ShowProducts(navController: NavController) {
                                         productToEdit = product
                                         editProductName = product.name
                                         editProductSector = product.sector
+                                        editProductFabrication = product.fabrication ?: ""
+                                        editProductValidity = product.validity ?: ""
                                         showEditDialog = true
                                     },
                                     colors = ButtonDefaults.buttonColors(
@@ -297,6 +307,20 @@ fun ShowProducts(navController: NavController) {
                                     )
                                 }
                             }
+                            OutlinedTextField(
+                                value = editProductFabrication,
+                                onValueChange = { editProductFabrication = it },
+                                label = { Text("Data de Fabricação (opcional)") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                            OutlinedTextField(
+                                value = editProductValidity,
+                                onValueChange = { editProductValidity = it },
+                                label = { Text("Validade (opcional)") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
                         }
                     },
                     confirmButton = {
@@ -309,7 +333,9 @@ fun ShowProducts(navController: NavController) {
                                                 Products(
                                                     uid = productToEdit!!.uid,
                                                     name = editProductName,
-                                                    sector = editProductSector
+                                                    sector = editProductSector,
+                                                    fabrication = editProductFabrication.ifEmpty { null },
+                                                    validity = editProductValidity.ifEmpty { null }
                                                 )
                                             )
                                             showEditDialog = false

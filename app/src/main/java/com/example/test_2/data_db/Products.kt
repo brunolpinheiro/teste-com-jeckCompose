@@ -9,5 +9,7 @@ import androidx.room.PrimaryKey
 data class Products(
     @PrimaryKey val uid: Int = 0,
     @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "sector") val sector: String
+    @ColumnInfo(name = "sector") val sector: String,
+    @ColumnInfo(name = "fabrication") val fabrication: String?,
+    @ColumnInfo(name = "validity") val validity: String?
 )

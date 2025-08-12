@@ -58,6 +58,11 @@ class MainActivity : ComponentActivity() {
                             ResgistrationProducts(navController = navController)
                         }
 
+                        composable("validityOfProducts")
+                        {
+                         ValidityOfProducts(navController = navController)
+                        }
+
                     }
                 }
             }

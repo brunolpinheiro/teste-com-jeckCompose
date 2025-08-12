@@ -12,13 +12,15 @@ interface ProdutsDao {
     @Insert
     suspend fun insertProduct(product: Products)
 
+
+
     @Query("SELECT * FROM products")
     fun getAll(): Flow<List<Products>>
     @Query("SELECT * FROM Products WHERE sector = :sector")
     fun getProductsBySector(sector: String): Flow<List<Products>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM products WHERE name = :name LIMIT 1)")
-    fun findByName(name: String): Boolean
+     fun findByName(name: String): Boolean
 
     @Update
     suspend fun updateProduct(product: Products)

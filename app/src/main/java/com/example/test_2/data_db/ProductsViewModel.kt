@@ -36,10 +36,10 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
     }
 
 
-    fun insertProduct(uid: Int, name: String, sector: String) {
+    fun insertProduct(uid: Int, name: String, sector: String,validity:String,fabrication:String) {
         viewModelScope.launch {
             try {
-                database.productDao().insertProduct(Products(uid = uid, name = name, sector = sector))
+                database.productDao().insertProduct(Products(uid = uid, name = name, sector = sector,fabrication = fabrication,validity = validity))
                 loadProducts(sector)
             } catch (e: Exception) {
                 Log.e("ProductViewModel", "Erro ao inserir produto: ${e.message}")
@@ -81,4 +81,5 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
             }
         }
     }
+
 }

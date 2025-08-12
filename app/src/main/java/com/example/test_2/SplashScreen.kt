@@ -72,7 +72,7 @@ public fun SplashScreen(navController: NavController) {
                 modifier = Modifier.padding(all = 16.dp)
             )
             Button(
-                onClick = {navController.navigate("connect_printers") },
+                onClick = {navController.navigate("validityOfProducts") },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
