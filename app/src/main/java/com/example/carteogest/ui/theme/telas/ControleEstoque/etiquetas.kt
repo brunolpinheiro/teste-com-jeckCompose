@@ -28,10 +28,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.rememberCoroutineScope
 import com.example.carteogest.bluetooth.model.BluetoothViewModel
+import com.example.carteogest.menu.TopBarWithLogo
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,16 +102,18 @@ fun Printers(
     var manufactureDate by remember { mutableStateOf("") }
     var expirationDate by remember { mutableStateOf("") }
     var quantit by remember { mutableStateOf("") }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Imprimir Etiqueta") },
-                navigationIcon = {
-                    IconButton(onClick = openDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                }
+            TopBarWithLogo(
+                userName = "Natanael Almeida",
+                onMenuClick = {
+                    scope.launch { drawerState.open() }
+                },
+                openDrawer = openDrawer
+
             )
         }
     ) { paddingValues ->
@@ -154,7 +161,7 @@ fun Printers(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-
+            val quantit = quantit.toIntOrNull() ?: 1
             Button(
                 onClick = {
                     viewModel.printLabel(

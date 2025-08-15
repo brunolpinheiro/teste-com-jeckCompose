@@ -1,5 +1,5 @@
 // RecebimentoViewModel.kt
-package com.example.carteogest.ui.telas.ControleEstoque
+package com.example.carteogest.ui.telas.ControleEstoque.model
 
 import androidx.lifecycle.ViewModel
 import com.example.carteogest.ui.telas.ControleEstoque.ProdutoRecebido

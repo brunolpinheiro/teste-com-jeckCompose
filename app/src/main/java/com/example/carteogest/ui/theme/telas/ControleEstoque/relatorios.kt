@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carteogest.menu.TopBarWithLogo
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,15 +32,17 @@ fun RelatoriosEstoqueScreen(
     var localizacao by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("") }
     var produto by remember { mutableStateOf("") }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Conectar Impressoras") },
-                navigationIcon = {
-                    IconButton(onClick = openDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                }
+            TopBarWithLogo(
+                userName = "Natanael Almeida",
+                onMenuClick = {
+                    scope.launch { drawerState.open() }
+                },
+                openDrawer = openDrawer
+
             )
         }
     ) { paddingValues ->

@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.carteogest.menu.TopBarWithLogo
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -51,22 +53,25 @@ fun ValidadesScreen(
 ) {
     var filtroProduto by remember { mutableStateOf("") }
     var filtroStatus by remember { mutableStateOf("Todos") }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Conectar Impressoras") },
-                navigationIcon = {
-                    IconButton(onClick = openDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                }
-            )
-        }
+            topBar = {
+                TopBarWithLogo(
+                    userName = "Natanael Almeida",
+                    onMenuClick = {
+                        scope.launch { drawerState.open() }
+                    },
+                    openDrawer = openDrawer
+
+                )
+            }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
+                .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
             Text("Consulta de Validades", fontSize = 22.sp, fontWeight = FontWeight.Bold)

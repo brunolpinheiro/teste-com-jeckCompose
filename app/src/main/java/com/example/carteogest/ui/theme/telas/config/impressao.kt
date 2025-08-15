@@ -1,6 +1,7 @@
 package com.example.carteogest.ui.telas.config
 
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,10 +27,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import com.example.carteogest.bluetooth.model.BluetoothViewModel
+import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.let
 
 
+@SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConectPrinters(
@@ -37,6 +41,7 @@ fun ConectPrinters(
     viewModel: BluetoothViewModel,
     openDrawer: () -> Unit,
 ) {
+
     var showPrinters by remember { mutableStateOf(false) }
     var selectedPrinter by remember { mutableStateOf<BluetoothDevice?>(null) }
     var loading by remember { mutableStateOf(false) }
@@ -44,6 +49,8 @@ fun ConectPrinters(
     val context = LocalContext.current
     val hasPermission = remember { viewModel.hasBluetoothPermission(context) }
     val printers by viewModel.deviceList.collectAsState()
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     fun searchForPrinters() {
         if (!showPrinters) {
@@ -53,7 +60,7 @@ fun ConectPrinters(
         } else if (selectedPrinter != null) {
             selectedPrinter?.let {
                 viewModel.connectToDevice(it.address)
-                navController.navigate("printer_details")
+                navController.navigate("Printers")
             }
         }
     }
@@ -68,13 +75,13 @@ fun ConectPrinters(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Conectar Impressoras") },
-                navigationIcon = {
-                    IconButton(onClick = openDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                }
+            TopBarWithLogo(
+                userName = "Natanael Almeida",
+                onMenuClick = {
+                    scope.launch { drawerState.open() }
+                },
+                openDrawer = openDrawer
+
             )
         }
     ) { paddingValues ->
@@ -111,8 +118,7 @@ fun ConectPrinters(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(printers) { printer ->
-                        val name = if (hasPermission) printer.name
-                            ?: "Desconhecida" else "Permissão negada"
+                        val name = if (hasPermission) printer.name ?: "Desconhecida" else "Permissão negada"
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()

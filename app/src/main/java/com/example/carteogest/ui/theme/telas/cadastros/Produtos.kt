@@ -29,7 +29,48 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.navigation.NavController
+import com.example.carteogest.menu.TopBarWithLogo
+import kotlinx.coroutines.launch
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun dropdownMenuField(
+    label: String,
+    options: List<String>,
+    selectedOption: String?,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            readOnly = true,
+            value = selectedOption ?: "",
+            onValueChange = {},
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.menuAnchor().fillMaxWidth()
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = { Text(selectionOption) },
+                    onClick = {
+                        onOptionSelected(selectionOption)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProdutoCadastroScreen(
@@ -39,6 +80,9 @@ fun ProdutoCadastroScreen(
     onSalvar: (ProdutoCadastro) -> Unit = {},
     openDrawer: () -> Unit,
 ) {
+    //val de menu
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
     // Estados dos campos obrigatórios
     var nome by remember { mutableStateOf("") }
     var codigoSKU by remember { mutableStateOf("") }
@@ -80,13 +124,13 @@ fun ProdutoCadastroScreen(
     }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Conectar Impressoras") },
-                navigationIcon = {
-                    IconButton(onClick = openDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                }
+            TopBarWithLogo(
+                userName = "Natanael Almeida",
+                onMenuClick = {
+                    scope.launch { drawerState.open() }
+                },
+                openDrawer = openDrawer
+
             )
         }
     ) { paddingValues ->
@@ -100,7 +144,36 @@ fun ProdutoCadastroScreen(
             Text("Cadastro de Produto", style = MaterialTheme.typography.headlineMedium)
 
             Spacer(Modifier.height(12.dp))
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(imagens) { uri ->
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            ImageRequest.Builder(context).data(uri).size(Size.ORIGINAL).build()
+                        ),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clickable {
+                                // Poderia implementar remover a imagem ao clicar
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
+                item {
+                    // Botão para adicionar imagens
+                    OutlinedButton(
+                        onClick = { launcher.launch("image/*") },
+                        modifier = Modifier.size(100.dp)
+                    ) {
+                        Text("+")
+                    }
+                }
+            }
+            Spacer(Modifier.height(12.dp))
             OutlinedTextField(
                 value = nome,
                 onValueChange = { nome = it },
@@ -132,7 +205,7 @@ fun ProdutoCadastroScreen(
             Spacer(Modifier.height(8.dp))
 
             // Dropdown Categoria
-            DropdownMenuField(
+            dropdownMenuField(
                 label = "Categoria*",
                 options = categorias,
                 selectedOption = categoria,
@@ -171,7 +244,7 @@ fun ProdutoCadastroScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            DropdownMenuField(
+            dropdownMenuField(
                 label = "Unidade de Medida",
                 options = unidadesMedida,
                 selectedOption = unidadeMedida,
@@ -189,7 +262,7 @@ fun ProdutoCadastroScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            DropdownMenuField(
+            dropdownMenuField(
                 label = "Status*",
                 options = statusOptions,
                 selectedOption = status,
@@ -311,34 +384,7 @@ fun ProdutoCadastroScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(imagens) { uri ->
-                    Image(
-                        painter = rememberAsyncImagePainter(
-                            ImageRequest.Builder(context).data(uri).size(Size.ORIGINAL).build()
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clickable {
-                                // Poderia implementar remover a imagem ao clicar
-                            },
-                        contentScale = ContentScale.Crop
-                    )
-                }
 
-                item {
-                    // Botão para adicionar imagens
-                    OutlinedButton(
-                        onClick = { launcher.launch("image/*") },
-                        modifier = Modifier.size(100.dp)
-                    ) {
-                        Text("+")
-                    }
-                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -383,45 +429,6 @@ fun ProdutoCadastroScreen(
             Spacer(Modifier.height(16.dp))
         }
     }
-}
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun dropdownMenuField(
-    label: String,
-    options: List<String>,
-    selectedOption: String?,
-    onOptionSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        OutlinedTextField(
-            readOnly = true,
-            value = selectedOption ?: "",
-            onValueChange = {},
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth()
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { selectionOption ->
-                DropdownMenuItem(
-                    text = { Text(selectionOption) },
-                    onClick = {
-                        onOptionSelected(selectionOption)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
 
 // Modelo de dados para cadastro
 data class ProdutoCadastro(

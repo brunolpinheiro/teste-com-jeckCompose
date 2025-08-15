@@ -14,6 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.carteogest.menu.TopBarWithLogo
+import kotlinx.coroutines.launch
+import com.example.carteogest.ui.telas.ControleEstoque.model.RecebimentoViewModel
 
 data class ProdutoRecebido(
     val codigo: String,
@@ -33,22 +36,25 @@ fun RecebimentoScreen(
     var codigoProduto by remember { mutableStateOf("") }
     var quantidade by remember { mutableStateOf("") }
     var observacao by remember { mutableStateOf("") }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Conectar Impressoras") },
-                navigationIcon = {
-                    IconButton(onClick = openDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                }
+            TopBarWithLogo(
+                userName = "Natanael Almeida",
+                onMenuClick = {
+                    scope.launch { drawerState.open() }
+                },
+                openDrawer = openDrawer
+
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(16.dp)
+                .padding(paddingValues),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {

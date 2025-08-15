@@ -19,43 +19,62 @@ import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.utils.ColorTemplate
 import androidx.compose.ui.graphics.toArgb
+import com.example.carteogest.menu.TopBarWithLogo
+import kotlinx.coroutines.launch
 
 @Composable
 fun DashboardScreen(openDrawer: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(12.dp)
-    ) {
-        Text(
-            text = "Dashboard de Vendas",
-            style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp),
-            color = MaterialTheme.colorScheme.primary
-        )
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-        Spacer(modifier = Modifier.height(16.dp))
+    Scaffold(
+        topBar = {
+            TopBarWithLogo(
+                userName = "Natanael Almeida",
+                onMenuClick = {
+                    scope.launch { drawerState.open() }
+                },
+                openDrawer = openDrawer
 
-        FilterSection()
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(modifier = Modifier.fillMaxWidth()) {
-            KpiCard("Vendas Hoje", "R$ 1.200,00", Modifier.weight(1f))
-            Spacer(Modifier.width(8.dp))
-            KpiCard("Total Mês", "R$ 25.300,00", Modifier.weight(1f))
-            Spacer(Modifier.width(8.dp))
-            KpiCard("Produtos Vendidos", "320", Modifier.weight(1f))
-            Spacer(Modifier.width(8.dp))
-            KpiCard("Clientes Ativos", "150", Modifier.weight(1f))
+            )
         }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(12.dp)
+                .padding(paddingValues)
+        ) {
+            Text(
+                text = "Dashboard de Vendas",
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp),
+                color = MaterialTheme.colorScheme.primary
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.fillMaxWidth()) {
-            ChartCard(Modifier.weight(1f)) { PieChartView(LocalContext.current) }
-            Spacer(Modifier.width(8.dp))
-            ChartCard(Modifier.weight(1f)) { LineChartView(LocalContext.current) }
+            FilterSection()
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+                KpiCard("Vendas Hoje", "R$ 1.200,00", Modifier.weight(1f))
+                Spacer(Modifier.width(8.dp).background(MaterialTheme.colorScheme.background))
+                KpiCard("Total Mês", "R$ 25.300,00", Modifier.weight(1f))
+                Spacer(Modifier.width(8.dp).background(MaterialTheme.colorScheme.background))
+                KpiCard("Produtos Vendidos", "320", Modifier.weight(1f))
+                Spacer(Modifier.width(8.dp).background(MaterialTheme.colorScheme.background))
+                KpiCard("Clientes Ativos", "150", Modifier.weight(1f).background(MaterialTheme.colorScheme.background))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+                ChartCard(Modifier.weight(1f).background(MaterialTheme.colorScheme.background)) { PieChartView(LocalContext.current) }
+                Spacer(Modifier.width(8.dp))
+                ChartCard(Modifier.weight(1f).background(MaterialTheme.colorScheme.background)) { LineChartView(LocalContext.current) }
+            }
         }
     }
 }
@@ -66,27 +85,27 @@ fun FilterSection() {
     var periodo by remember { mutableStateOf("") }
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         OutlinedTextField(
             value = categoria,
             onValueChange = { categoria = it },
             label = { Text("Categoria") },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).background(MaterialTheme.colorScheme.background)
         )
 
         OutlinedTextField(
             value = periodo,
             onValueChange = { periodo = it },
             label = { Text("Período") },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).background(MaterialTheme.colorScheme.background),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
         Button(
             onClick = { /* Ação de filtro */ },
-            modifier = Modifier.alignByBaseline()
+            modifier = Modifier.alignByBaseline().background(MaterialTheme.colorScheme.background)
         ) {
             Text("Filtrar")
         }
@@ -96,7 +115,7 @@ fun FilterSection() {
 @Composable
 fun KpiCard(title: String, value: String, modifier: Modifier) {
     Card(
-        modifier = modifier.height(90.dp),
+        modifier = modifier.height(90.dp).background(MaterialTheme.colorScheme.background),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {

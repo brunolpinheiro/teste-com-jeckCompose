@@ -14,10 +14,10 @@ import androidx.compose.material3.lightColorScheme
 
 // Definir o esquema de cores para o tema escuro
 private val DarkColorScheme = darkColorScheme(
-    primary = Color.Blue, // Cor laranja para botão e texto "Rápida"
+    primary = Color(0xFF004AAD), // Cor laranja para botão e texto "Rápida"
     onPrimary = Color.Black, // Texto branco no botão
     background = Color.White, // Fundo preto
-    onSurface = Color.White, // Texto branco em fundo escuro
+    onSurface = Color.Black, // Texto branco em fundo escuro
     secondary = Color.White
 )
 

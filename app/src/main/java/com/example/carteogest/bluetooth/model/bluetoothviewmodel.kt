@@ -106,7 +106,7 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun printLabel(text1: String, text2: String, text3: String, text4: String,text5: String) {
+    /*fun printLabel(text1: String, text2: String, text3: String, text4: String,text5: String) {
         viewModelScope.launch {
             try {
                 printing.value = true
@@ -127,7 +127,7 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
                 }.joinToString("\n")
 
                 val label = """
-                     ^RESET
+
                 """.trimIndent()
 
                 outputStream?.write(label.toByteArray(Charsets.UTF_8))
@@ -139,5 +139,60 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
                 printing.value = false
             }
         }
+    }*/
+    fun printLabel(
+        text1: String, text2: String, text3: String, text4: String, text5: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                printing.value = true
+                val outputStream: OutputStream? = selectedSocket?.outputStream
+
+                val comandos = StringBuilder()
+                comandos.appendLine("! 0 200 200 250 $text5")
+                comandos.appendLine("PAGE-WIDTH 350")
+                comandos.appendLine("SETFF 0")
+
+                var y = 30
+
+                // 1️⃣ Primeira linha: primeira palavra maior + linha horizontal
+                val parts = text1.split(" ", limit = 2)
+                val firstWord = parts[0]
+                val rest = if (parts.size > 1) parts[1] else ""
+
+                comandos.appendLine("""TEXT 4 0 10 $y $firstWord""") // primeira palavra grande
+                y += 40
+                comandos.appendLine("""LINE 10 $y 350 $y 2""")        // linha horizontal
+                y += 10
+                if (rest.isNotEmpty()) {
+                    comandos.appendLine("""TEXT 2 0 10 $y $rest""") // resto da primeira linha
+                    y += 30
+                }
+
+                // 2️⃣ Demais linhas: fonte menor, sem linha horizontal
+                val otherLines = listOf(
+                    "Fab.:     $text3",
+                    "Validade:     $text4",
+                    "Responsavel:    $text2"
+                )
+
+                for (line in otherLines) {
+                    comandos.appendLine("""TEXT 2 0 10 $y $line""")
+                    y += 30
+                }
+
+                comandos.appendLine("PRINT")
+
+                outputStream?.write(comandos.toString().toByteArray(Charsets.UTF_8))
+                outputStream?.flush()
+                onToastMessage?.invoke("Etiqueta enviada.")
+
+            } catch (e: Exception) {
+                onToastMessage?.invoke("Erro ao imprimir: ${e.message}")
+            } finally {
+                printing.value = false
+            }
+        }
     }
+
 }

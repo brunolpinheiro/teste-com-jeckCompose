@@ -17,12 +17,17 @@ import com.example.carteogest.ui.telas.login.LoginScreen
 import com.example.carteogest.ui.telas.login.SplashScreen
 import com.example.carteogest.ui.telas.ControleEstoque.RecebimentoScreen
 import com.example.carteogest.ui.telas.config.ConectPrinters
-import com.example.carteogest.ui.telas.ControleEstoque.ContagemScreen
+import com.example.carteogest.ui.telas.ControleEstoque.StockAdjustmentScreen
 import com.example.carteogest.ui.telas.ControleEstoque.Printers
 import com.example.carteogest.ui.telas.ControleEstoque.RelatoriosEstoqueScreen
 import com.example.carteogest.ui.telas.ControleEstoque.ValidadesScreen
 import com.example.carteogest.ui.telas.ControleEstoque.ProdutoCadastroScreen
 import com.example.carteogest.ui.telas.inicio.DashboardScreen
+import com.example.carteogest.ui.telas.inicio.DashboardScreenum
+import com.example.carteogest.ui.telas.inicio.Fornecedores
+import com.example.carteogest.ui.telas.ControleEstoque.model.fornecedoresViewModel
+import com.example.carteogest.ui.telas.ControleEstoque.SupplierRegistrationScreen
+
 
 
 
@@ -38,6 +43,14 @@ fun MainApp() {
     val bluetoothViewModel: BluetoothViewModel = viewModel(
         factory = BluetoothViewModelFactory(context as android.app.Application)
     )
+    val produtoViewModel: ProdutoViewModel = viewModel()
+    LaunchedEffect(Unit) {
+        produtoViewModel.carregarProdutos()
+    }
+    val fornecedoresViewModel: fornecedoresViewModel = viewModel()
+    LaunchedEffect(Unit) {
+        fornecedoresViewModel.carregarfornecedores()
+    }
 
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -75,13 +88,36 @@ fun MainApp() {
                             openDrawer = { scope.launch { drawerState.open() } }
                         )
                     }
+
+                    composable("dash1") {
+                        val produtoViewModel: ProdutoViewModel = viewModel()
+
+                        // Garante que os produtos fictícios sejam carregados
+                        LaunchedEffect(Unit) {
+                            produtoViewModel.carregarProdutos()
+                        }
+                        DashboardScreenum(
+                            viewModel = viewModel(),
+                            onAjustarEstoque = { },
+                            onInserirValidade = { },
+                            openDrawer = { scope.launch { drawerState.open() } },
+                            navController = navController,
+                        )
+
+                    }
+
+                    composable("Fornecedores") {
+                        Fornecedores(
+                            openDrawer = { scope.launch { drawerState.open() } },
+                            navController = navController,
+                            )
+                    }
                     composable("RecebimentoScreen") {
                         RecebimentoScreen(
-                            onFinalizar = { /*...*/ },
-                            viewModel = viewModel(),
-                            openDrawer = { scope.launch { drawerState.open() } },
-
-                            )
+                            onFinalizar = { },
+                            viewModel(),
+                            openDrawer = { scope.launch { drawerState.open() } }
+                        )
                     }
                     composable("ConectPrinters") {
                         ConectPrinters(
@@ -90,13 +126,8 @@ fun MainApp() {
                             openDrawer = { scope.launch { drawerState.open() } }
                         )
                     }
-                    composable("contagem") {
-                        ContagemScreen(
-                            produtosDisponiveis = emptyList(),
-                            locais = listOf("Depósito A", "Prateleira 1", "Prateleira 2"),
-                            statusOptions = listOf("OK", "Danificado", "Faltando"),
-                            onFinalizarContagem = { },
-                            onCancelar = { },
+                    composable("StockAdjustmentScreen") {
+                        StockAdjustmentScreen(
                             openDrawer = { scope.launch { drawerState.open() } }
                         )
                     }
@@ -133,6 +164,16 @@ fun MainApp() {
                         Printers(
                             navController = navController,
                             viewModel = bluetoothViewModel,
+                            openDrawer = { scope.launch { drawerState.open() } }
+                        )
+                    }
+                    composable("SupplierRegistrationScreen") {
+                        SupplierRegistrationScreen(
+                            openDrawer = { scope.launch { drawerState.open() } }
+                        )
+                    }
+                    composable("StockAdjustmentScreen") {
+                        StockAdjustmentScreen(
                             openDrawer = { scope.launch { drawerState.open() } }
                         )
                     }

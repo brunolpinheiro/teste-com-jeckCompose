@@ -25,7 +25,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             delay(1500) // Simula carregamento/splash
 
-            val usuarioLogado = false // TODO: verificar token/sessão real
+            val usuarioLogado = true // TODO: verificar token/sessão real
 
             _authState.value = if (usuarioLogado) {
                 AuthState.AUTHENTICATED
