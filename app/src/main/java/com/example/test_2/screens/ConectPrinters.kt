@@ -1,4 +1,4 @@
-package com.example.test_2
+package com.example.test_2.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,7 +34,7 @@ import com.example.composetutorial.ui.theme.ComposeTutorialTheme
 import kotlinx.coroutines.delay
 
 @Composable
-fun ConectPrinters(navController: NavController) {
+fun ConectPrinters2(navController: NavController) {
     var showPrinters by remember { mutableStateOf(false) }
     var selectedPrinter by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }

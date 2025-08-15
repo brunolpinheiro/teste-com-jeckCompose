@@ -1,32 +1,23 @@
-package com.example.test_2
+
+package com.example.teste_2
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import android.content.pm.PackageManager
+import android.Manifest
+import android.os.Build
+import androidx.core.content.ContextCompat
 import com.example.composetutorial.ui.theme.ComposeTutorialTheme
+import com.example.test_2.Nav.MainApp
+
+
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,36 +28,35 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
-                    NavHost(navController = navController, startDestination = "splash") {
-                        composable("splash") {
-                            SplashScreen( navController = navController)
-                        }
-
-                        composable("connect_printers") {
-                            ConectPrinters(navController = navController)
-                        }
-                        composable("printer_details") {
-                            Printers(navController = navController)
-                        }
-
-                        composable ( "showProducts" ){
-                            ShowProducts(navController = navController)
-                        }
-
-                        composable ("resgistrationProducts"){
-                            ResgistrationProducts(navController = navController)
-                        }
-
-                        composable("validityOfProducts")
-                        {
-                         ValidityOfProducts(navController = navController)
-                        }
-
-                    }
+                    MainApp()
                 }
+            }
+        }
+        checkAndRequestBluetoothPermissions()
+
+    }
+    private fun checkAndRequestBluetoothPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Android 12 ou superior
+            val missingPermissions = mutableListOf<String>()
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                missingPermissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+            }
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                missingPermissions.add(Manifest.permission.BLUETOOTH_SCAN)
+            }
+
+            if (missingPermissions.isNotEmpty()) {
+                requestPermissions(missingPermissions.toTypedArray(), 100)
+            }
+
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android 6 a 11
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 101)
             }
         }
     }
 }
-

@@ -1,6 +1,5 @@
-package com.example.test_2
+package com.example.test_2.screens
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +31,6 @@ import androidx.navigation.NavController
 import com.example.composetutorial.ui.theme.ComposeTutorialTheme
 import com.example.test_2.data.AppDatabase
 import com.example.test_2.data_db.ProductViewModel
-import com.example.test_2.data_db.Products
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import java.text.SimpleDateFormat

@@ -26,9 +26,12 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
         }
     }
 
-    fun findByName(name: String): Boolean {
+    suspend  fun findByName(name: String): Boolean {
         return try {
-            database.productDao().findByName(name)
+            val exists = database.productDao().findByName(name)
+            Log.d("ProductViewModel", "Verificação de produto com nome '$name': $exists")
+            exists
+
         } catch (e: Exception) {
             Log.e("ProductViewModel", "Não foi possível verificar o nome do produto: ${e.message}")
             false
@@ -36,10 +39,56 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
     }
 
 
-    fun insertProduct(uid: Int, name: String, sector: String,validity:String,fabrication:String) {
+    fun insertProduct(
+        uid: Int = 0, // Valor padrão para suportar auto-incremento
+        name: String,
+        sector: String,
+        skuCode: String,
+        price: Float,
+        quantity: Int,
+        brand: String,
+        fabrication: String? = null,
+        validity: String? = null,
+        promotionalPrice: Float? = null,
+        unitOfMeasure: String? = null,
+        status: String? = null,
+        barcode: String? = null,
+        height: Float? = null,
+        width: Float? = null,
+        length: Float? = null,
+        weight: Float? = null,
+        color: String? = null,
+        size: String? = null,
+        cost: Float? = null,
+        tags: String? = null,
+        supplier: String? = null
+    ) {
         viewModelScope.launch {
             try {
-                database.productDao().insertProduct(Products(uid = uid, name = name, sector = sector,fabrication = fabrication,validity = validity))
+                database.productDao().insertProduct(
+                    Products(
+                        uid = uid,
+                        name = name,
+                        sector = sector,
+                        fabrication = fabrication,
+                        validity = validity,
+                        skuCode = skuCode,
+                        price = price,
+                        promotionalPrice = promotionalPrice,
+                        quantity = quantity,
+                        unitOfMeasure = unitOfMeasure,
+                        brand = brand,
+                        status = status,
+                        barcode = barcode,
+                        height = height,
+                        width = width,
+                        length = length,
+                        weight = weight,
+                        color = color,
+                        size = size,
+                        cost = cost,
+                        tags = tags,
+                        supplier = supplier))
                 loadProducts(sector)
             } catch (e: Exception) {
                 Log.e("ProductViewModel", "Erro ao inserir produto: ${e.message}")

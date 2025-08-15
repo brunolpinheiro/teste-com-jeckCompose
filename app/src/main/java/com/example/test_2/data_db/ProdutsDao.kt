@@ -19,8 +19,8 @@ interface ProdutsDao {
     @Query("SELECT * FROM Products WHERE sector = :sector")
     fun getProductsBySector(sector: String): Flow<List<Products>>
 
-    @Query("SELECT EXISTS(SELECT 1 FROM products WHERE name = :name LIMIT 1)")
-     fun findByName(name: String): Boolean
+    @Query("SELECT EXISTS(SELECT 1 FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) LIMIT 1)")
+    suspend fun findByName(name: String): Boolean
 
     @Update
     suspend fun updateProduct(product: Products)

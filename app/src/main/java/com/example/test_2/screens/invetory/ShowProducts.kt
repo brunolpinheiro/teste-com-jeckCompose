@@ -1,6 +1,5 @@
-package com.example.test_2
+package com.example.test_2.screens.invetory
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,17 +43,23 @@ import com.example.test_2.data_db.ProductViewModel
 import com.example.test_2.data_db.Products
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowProducts(navController: NavController) {
+fun ShowProducts(
+    navController: NavController,
+    openDrawer: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val database = remember { AppDatabase.getDatabase(context, scope) }
     val viewModel = remember { database?.let { ProductViewModel(it) } }
 
-    var selectedSector by remember { mutableStateOf("Copa") }
+    var selectedSector by remember { mutableStateOf("") }
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var productToEdit by remember { mutableStateOf<Products?>(null) }
@@ -65,17 +70,23 @@ fun ShowProducts(navController: NavController) {
     var editProductValidity by remember { mutableStateOf("") }
     var showEditSectorDropdown by remember { mutableStateOf(false) }
     val products by viewModel?.products ?: remember { mutableStateOf(emptyList()) }
+    var loadingProducts by remember {mutableStateOf(false)}
 
     // Carregar todos os produtos ao iniciar
-    LaunchedEffect(Unit) {
-        viewModel?.let { vm ->
-            scope.launch {
-                try {
-                    vm.getAll()
-                } catch (e: Exception) {
-                    Log.e("ShowProducts", "Erro ao carregar produtos: ${e.message}")
-                }
-            }
+    LaunchedEffect(loadingProducts) {
+     //   viewModel?.let { vm ->
+     //       scope.launch {
+       //         try {
+         //           vm.getAll()
+           //     } catch (e: Exception) {
+            //        Log.e("ShowProducts", "Erro ao carregar produtos: ${e.message}")
+             //   }
+            //}
+        //}
+        if(loadingProducts){
+            delay(2000L) // Atraso de 2 segundos
+            loadingProducts= false
+
         }
     }
 
@@ -86,7 +97,7 @@ fun ShowProducts(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background) // Fundo branco para a área de conteúdo
+                    .background(MaterialTheme.colorScheme.onPrimary) // Fundo branco para a área de conteúdo
                     .padding(padding)
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -137,6 +148,7 @@ fun ShowProducts(navController: NavController) {
                                 selected = selectedSector == sector,
                                 onClick = {
                                     selectedSector = sector
+                                    loadingProducts = true
                                     viewModel?.let { vm ->
                                         scope.launch {
                                             try {
@@ -169,49 +181,64 @@ fun ShowProducts(navController: NavController) {
                         .weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(products) { product ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "${product.name} - ${product.sector}- ${product.fabrication}",
-                                fontSize = 18.sp, // Fonte maior
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(1f)
+                    if (loadingProducts) {
+                        item {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .padding(16.dp)
+                                    .align(Alignment.CenterHorizontally)
+                                    .semantics { contentDescription = "Carregando produtos" },
+                                color = MaterialTheme.colorScheme.primary
                             )
-                            Row {
-                                Button(
-                                    onClick = {
-                                        productToEdit = product
-                                        editProductName = product.name
-                                        editProductSector = product.sector
-                                        editProductFabrication = product.fabrication ?: ""
-                                        editProductValidity = product.validity ?: ""
-                                        showEditDialog = true
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary
-                                    ),
-                                    modifier = Modifier.padding(end = 8.dp)
-                                ) {
-                                    Text("Editar", fontSize = 14.sp)
-                                }
-                                Button(
-                                    onClick = {
-                                        productToDelete = product
-                                        showDeleteDialog = true
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.error,
-                                        contentColor = MaterialTheme.colorScheme.onError
-                                    )
-                                ) {
-                                    Text("Deletar", fontSize = 14.sp)
+                        }
+                    }
+
+                    else{
+                        items(products) { product ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "${product.name} - ${product.sector}",
+                                    fontSize = 18.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Row {
+                                    Button(
+                                        onClick = {
+                                            productToEdit = product
+                                            editProductName = product.name
+                                            editProductSector = product.sector ?: ""
+                                            editProductFabrication = product.fabrication ?: ""
+                                            editProductValidity = product.validity ?: ""
+                                            showEditDialog = true
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primary,
+                                            contentColor = MaterialTheme.colorScheme.onPrimary
+                                        ),
+                                        modifier = Modifier.padding(end = 8.dp)
+                                    ) {
+                                        Text("Editar", fontSize = 14.sp)
+                                    }
+                                    Button(
+                                        onClick = {
+                                            productToDelete = product
+                                            showDeleteDialog = true
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.error,
+                                            contentColor = MaterialTheme.colorScheme.onError
+                                        )
+                                    ) {
+                                        Text("Deletar", fontSize = 14.sp)
+                                    }
                                 }
                             }
                         }
@@ -247,7 +274,7 @@ fun ShowProducts(navController: NavController) {
                                     scope.launch {
                                         try {
                                             it.deleteProduct(productToDelete!!)
-                                            selectedSector = "Todos"
+                                            selectedSector = ""
                                             showDeleteDialog = false
                                         } catch (e: Exception) {
                                             Log.e("ShowProducts", "Erro ao deletar produto: ${e.message}")
@@ -335,7 +362,24 @@ fun ShowProducts(navController: NavController) {
                                                     name = editProductName,
                                                     sector = editProductSector,
                                                     fabrication = editProductFabrication.ifEmpty { null },
-                                                    validity = editProductValidity.ifEmpty { null }
+                                                    validity = editProductValidity.ifEmpty { null },
+                                                    skuCode = "",
+                                                    price = 0f,
+                                                    promotionalPrice = null,
+                                                    quantity = 0,
+                                                    unitOfMeasure = null,
+                                                    brand = "",
+                                                    status = null,
+                                                    barcode = null,
+                                                    height = null,
+                                                    width = null,
+                                                    length = null,
+                                                    weight = null,
+                                                    color = null,
+                                                    size = null,
+                                                    cost = null,
+                                                    tags = null,
+                                                    supplier = null
                                                 )
                                             )
                                             showEditDialog = false
