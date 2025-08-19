@@ -71,6 +71,7 @@
         implementation("io.coil-kt:coil-compose:2.7.0")
         androidTestImplementation(libs.androidx.junit)
         androidTestImplementation(libs.androidx.espresso.core)
+        implementation("de.raphaelebner:roomdatabasebackup:1.1.0")
 
         implementation("com.google.code.gson:gson:2.10.1")
 

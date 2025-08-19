@@ -217,23 +217,7 @@ fun ShowProducts(
                                         color = MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.weight(1f)
                                     )
-                                    if (!product.urlImage.isNullOrEmpty()) {
-                                        LazyRow(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            items(product.urlImage) { path ->
-                                                Image(
-                                                    painter = rememberAsyncImagePainter(model = File(path)), // Usa File para caminho absoluto
-                                                    contentDescription = "Imagem do produto",
-                                                    modifier = Modifier.size(80.dp),
-                                                    contentScale = ContentScale.Crop
-                                                )
-                                            }
-                                        }
-                                    } else {
-                                        Text("Sem imagens", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
+
                                 }
                                     Row {
                                         Button(
@@ -409,7 +393,6 @@ fun ShowProducts(
                                                     cost = null,
                                                     tags = null,
                                                     supplier = null,
-                                                    urlImage = emptyList()
 
                                                  )
                                             )
