@@ -1,8 +1,8 @@
-package com.example.test_2.data_db
+package com.example.test_2.data_db.products
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.ColumnInfo
 
 @Entity(tableName = "products")
 data class Products(
@@ -27,5 +27,5 @@ data class Products(
     @ColumnInfo(name = "size") val size: String?,
     @ColumnInfo(name = "cost") val cost: Float?,
     @ColumnInfo(name = "tags") val tags: String?,
-    @ColumnInfo(name = "supplier") val supplier: String?
+    @ColumnInfo(name = "supplier") val supplier: String?,
 )

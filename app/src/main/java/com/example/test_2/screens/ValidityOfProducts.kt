@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composetutorial.ui.theme.ComposeTutorialTheme
-import com.example.test_2.data.AppDatabase
-import com.example.test_2.data_db.ProductViewModel
+import com.example.test_2.data_db.AppDatabase
+import com.example.test_2.data_db.products.ProductViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import java.text.SimpleDateFormat

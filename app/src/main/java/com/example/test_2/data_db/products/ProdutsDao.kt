@@ -1,10 +1,11 @@
-package com.example.test_2.data_db
+package com.example.test_2.data_db.products
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.example.test_2.data_db.products.Products
 import kotlinx.coroutines.flow.Flow
 
 @Dao

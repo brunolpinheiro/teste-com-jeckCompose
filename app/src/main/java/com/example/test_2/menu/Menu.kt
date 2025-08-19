@@ -1,22 +1,30 @@
 package com.example.test_2.menu
 
-
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.material.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.test_2.bluetooth.model.BluetoothViewModel
+import com.example.test_2.R
+
+
 
 @Composable
 fun AppDrawer(
@@ -33,122 +41,224 @@ fun AppDrawer(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        modifier = Modifier .background(Color.Green),
+        scrimColor = Color.Transparent,
+
+
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(
+                drawerShape = RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp),
+                modifier = Modifier
+                    //.fillMaxHeight()
+                    .width(220.dp)
+                    .background(Color.Transparent),
+
+                // Cor de fundo do menu
+            )  {
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
+                        .padding(start = 8.dp)
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
-                        .background(Color.Transparent, shape = RoundedCornerShape(8.dp)),
+                        .width(220.dp)
+                        //.padding(26.dp)
+                        .background(MaterialTheme.colorScheme.primary),
                 ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+
+                            .padding(vertical = 0.dp, horizontal = 0.dp)
+                            .background(Color(0xFF008C4A),shape = RoundedCornerShape(0.dp)),
+                        horizontalArrangement = Arrangement.Start
+
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp) // altura da row
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.image),
+                                contentDescription = "Fundo da Row",
+                                contentScale = ContentScale.Crop, // preenche a área
+                                modifier = Modifier.matchParentSize() // ocupa todo o Box
+                            )
+
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp, horizontal = 8.dp)
+                                .background(Color.Transparent),
+                                horizontalArrangement = Arrangement.Start) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.icone), // substitua pela logo real
+                                    contentDescription = "Logo do app",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .size(82.dp)
+                                    //.padding(all = 12.dp)
+                                )
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp, horizontal = 8.dp)
+                                        .background(Color.Transparent),
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = "userName",
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Text(
+                                        text = "Bem-vindo(a)!",
+                                        color = Color.White.copy(alpha = 0.7f),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                            }
+
+                        }
+
+                    }
+
+                    Divider(color = Color.White.copy(alpha = 0.3f))
                     @Composable
                     fun drawerItem(
-                        icon: @Composable () -> Unit,
+
                         labelText: String,
                         selected: Boolean,
                         onClick: () -> Unit,
                         modifier: Modifier = Modifier
                     ) {
                         NavigationDrawerItem(
-                            icon = icon,
                             label = { Text(labelText) },
                             selected = selected,
+
                             onClick = onClick,
                             modifier = modifier
-                                .padding(8.dp)
-                                .background(Color.Transparent, shape = RoundedCornerShape(8.dp)),
+                                .padding(2.dp)
+                                .padding(start = 8.dp)
+                                .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(0.dp)),
                             colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = Color.Transparent,
+                                selectedContainerColor = MaterialTheme.colorScheme.primary ,
                                 selectedTextColor = MaterialTheme.colorScheme.primary,
-                                unselectedTextColor = Color.Blue,
+                                unselectedTextColor = Color.White,
                                 selectedIconColor = MaterialTheme.colorScheme.primary,
-                                unselectedIconColor = Color.Blue
+                                unselectedIconColor = Color.White
                             )
                         )
                     }
 
                     drawerItem(
-                        icon = { Icon(Icons.Default.Star, contentDescription = null) },
-                        labelText = "Home",
+                        labelText = "Inicio",
                         selected = currentRoute == "dash",
                         onClick = { onDestinationClicked("dash") }
                     )
 
+                    Divider(color = Color.White.copy(alpha = 0.3f))
                     drawerItem(
-                        icon = { Icon(Icons.Default.Info, contentDescription = null) },
                         labelText = "Controle de Estoque",
                         selected = false,
                         onClick = { subMenu1 = !subMenu1 }
                     )
-
+                    Divider(color = Color.White.copy(alpha = 0.3f))
                     if (subMenu1) {
                         drawerItem(
-                            icon = { Icon(Icons.Default.Star, contentDescription = null) },
+
+                            labelText = "Produtos",
+                            selected = currentRoute == "ShowProducts",
+                            onClick = { onDestinationClicked("ShowProducts") },
+                            modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
+                        )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
+                        drawerItem(
+
                             labelText = "Recebimento",
                             selected = currentRoute == "RecebimentoScreen",
                             onClick = { onDestinationClicked("RecebimentoScreen") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
                         drawerItem(
-                            icon = { Icon(Icons.Default.Star, contentDescription = null) },
-                            labelText = "Contagem",
-                            selected = currentRoute == "ShowProducts",
-                            onClick = { onDestinationClicked("ShowProducts") },
+
+                            labelText = "Fornecedores",
+                            selected = currentRoute == "ShowSupplier",
+                            onClick = { onDestinationClicked("ShowSupplier") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
                         drawerItem(
-                            icon = { Icon(Icons.Default.Star, contentDescription = null) },
+
+                            labelText = "Ajuste de Estoque",
+                            selected = currentRoute == "StockAdjustmentScreen",
+                            onClick = { onDestinationClicked("StockAdjustmentScreen") },
+                            modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
+                        )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
+                        drawerItem(
+
                             labelText = "Validades",
                             selected = currentRoute == "ValidadesScreen",
                             onClick = { onDestinationClicked("ValidadesScreen") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
                         drawerItem(
-                            icon = { Icon(Icons.Default.Star, contentDescription = null) },
+
                             labelText = "Etiquetas",
                             selected = currentRoute == "Printers",
                             onClick = { onDestinationClicked("Printers") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
                         drawerItem(
-                            icon = { Icon(Icons.Default.Star, contentDescription = null) },
+
                             labelText = "Relatorios",
                             selected = currentRoute == "RelatoriosEstoqueScreen",
                             onClick = { onDestinationClicked("RelatoriosEstoqueScreen") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                     }
-
+                    Divider(color = Color.White.copy(alpha = 0.3f))
                     drawerItem(
-                        icon = { Icon(Icons.Default.Info, contentDescription = null) },
+
                         labelText = "Cadastros",
                         selected = false,
                         onClick = { subMenu2 = !subMenu2 }
                     )
-
+                    Divider(color = Color.White.copy(alpha = 0.3f))
                     if (subMenu2) {
                         drawerItem(
-                            icon = { Icon(Icons.Default.Star, contentDescription = null) },
+
                             labelText = "Produtos",
                             selected = currentRoute == "RegistrationProducts",
                             onClick = { onDestinationClicked("RegistrationProducts") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
-                    }
+                        Divider(color = Color.White.copy(alpha = 0.3f))
+                        drawerItem(
 
+                            labelText = "Fornecedores",
+                            selected = currentRoute == "ResgistrationSupplier",
+                            onClick = { onDestinationClicked("ResgistrationSupplier") },
+                            modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
+                        )
+                    }
+                    Divider(color = Color.White.copy(alpha = 0.3f))
                     drawerItem(
-                        icon = { Icon(Icons.Default.Info, contentDescription = null) },
+
                         labelText = "Configurações",
                         selected = false,
                         onClick = { subMenu3 = !subMenu3 }
                     )
+                    Divider(color = Color.White.copy(alpha = 0.3f))
 
                     if (subMenu3) {
                         drawerItem(
-                            icon = { Icon(Icons.Default.Star, contentDescription = null) },
-                            labelText = "Impressão",
+
+                            labelText = "Impressoras",
                             selected = currentRoute == "ConectPrinters",
                             onClick = {
                                 viewModel.requestPermissions(
@@ -157,17 +267,25 @@ fun AppDrawer(
                                     },
                                     onGranted = {
                                         viewModel.enableBluetooth()
-                                        navController.navigate("connect_printers")
+                                        onDestinationClicked("ConectPrinters")
                                     }
                                 )
-                                onDestinationClicked("connect_printers")
+
                             },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
+                        drawerItem(
+
+                            labelText = "Usuários e Permissões",
+                            selected = false,
+                            onClick = { subMenu3 = !subMenu3 }
+                        )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
                     }
                 }
             }
-        }
+        },
     ) {
         content()
     }

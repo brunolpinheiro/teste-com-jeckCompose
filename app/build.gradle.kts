@@ -49,6 +49,7 @@
         implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
         implementation(libs.material3)
         implementation(libs.volley)
+        implementation(libs.androidx.glance)
         debugImplementation("androidx.compose.ui:ui-tooling")
         implementation("androidx.navigation:navigation-compose:2.8.0")
         implementation(libs.androidx.core.ktx)
@@ -71,6 +72,7 @@
         androidTestImplementation(libs.androidx.junit)
         androidTestImplementation(libs.androidx.espresso.core)
 
+        implementation("com.google.code.gson:gson:2.10.1")
 
         // Room
 

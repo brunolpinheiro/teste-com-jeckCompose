@@ -40,9 +40,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.navigation.NavController
 import com.example.composetutorial.ui.theme.ComposeTutorialTheme
-import com.example.test_2.data.AppDatabase
-import com.example.test_2.data_db.ProductViewModel
-import com.example.test_2.data_db.Products
+import com.example.test_2.data_db.AppDatabase
+import com.example.test_2.data_db.products.ProductViewModel
 import kotlinx.coroutines.launch
 import android.util.Log
 import androidx.compose.foundation.layout.Spacer
@@ -51,32 +50,20 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyRow
 import kotlin.random.Random
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.*
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberAsyncImagePainter
-import com.android.volley.toolbox.ImageRequest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.material.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
-import coil.compose.rememberAsyncImagePainter
-import coil.size.Size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.ui.layout.onGloballyPositioned
+import com.example.test_2.data_db.supplier.SupplierViewModel
+import com.example.test_2.data_db.supplier.Supplier
+import androidx.compose.runtime.LaunchedEffect
+// Assumindo que Supplier está importado ou definido em outro lugar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,11 +75,14 @@ fun ResgistrationProducts(
     val scope = rememberCoroutineScope()
     val database = remember { AppDatabase.getDatabase(context, scope) }
     val viewModel = remember { database?.let { ProductViewModel(it) } }
+    val viewModelSupplier = remember { database?.let { SupplierViewModel(it) } }
+    val suppliers by viewModelSupplier?.supplier ?: remember { mutableStateOf(emptyList<Supplier>()) } // Corrigido: "supplier" -> "suppliers"; adicionei tipo genérico para clareza
     var showSectorDropdown by remember { mutableStateOf(false) }
     var showUnitOfMeasureDropdown by remember { mutableStateOf(false) }
     var showStatusDropdown by remember { mutableStateOf(false) }
+    var showSupplierDropdown by remember { mutableStateOf(false) }
     var inputHeight by remember { mutableStateOf(0f) }
-    var showProductsExists by remember{mutableStateOf(false)}
+    var showProductsExists by remember { mutableStateOf(false) }
 
     var fabrication by remember { mutableStateOf("") }
     var validity by remember { mutableStateOf("") }
@@ -117,7 +107,7 @@ fun ResgistrationProducts(
     var size by remember { mutableStateOf("") }
     var cost by remember { mutableStateOf("") }
     var tags by remember { mutableStateOf("") }
-    var supplier by remember { mutableStateOf("") }
+    var selectedSupplier by remember { mutableStateOf<String?>(null) }
     var expirationDate by remember { mutableStateOf("") }
     var imagens by remember { mutableStateOf<List<Uri>>(emptyList()) }
     val products by viewModel?.products ?: remember { mutableStateOf(emptyList()) }
@@ -128,7 +118,17 @@ fun ResgistrationProducts(
     }
 
 
-
+    LaunchedEffect(Unit) {  // Carrega automaticamente ao entrar na tela
+        viewModelSupplier?.let { vm ->
+            scope.launch {
+                try {
+                    vm.getAll()  // Ou o nome da função equivalente no seu ViewModel
+                } catch (e: Exception) {
+                    Log.e("ResgistrationProducts", "Erro ao carregar fornecedores: ${e.message}")
+                }
+            }
+        }
+    }
 
     ComposeTutorialTheme {
         Scaffold(
@@ -329,7 +329,7 @@ fun ResgistrationProducts(
                                         Icon(
                                             imageVector = Icons.Default.ArrowDropDown,
                                             contentDescription = "Selecionar status",
-                                                    modifier = Modifier.clickable{showStatusDropdown = true}
+                                            modifier = Modifier.clickable{showStatusDropdown = true}
 
                                         )
                                     }
@@ -447,16 +447,57 @@ fun ResgistrationProducts(
                                     .semantics { contentDescription = "Campo para tags" },
                                 singleLine = true
                             )
-
-                            OutlinedTextField(
-                                value = supplier,
-                                onValueChange = { supplier = it },
-                                label = { Text("Fornecedor (opcional)") },
+                            Text("Número de fornecedores: ${suppliers.size ?: "nenhum"}") // Corrigido para lidar com null ou vazio
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .semantics { contentDescription = "Campo para fornecedor" },
-                                singleLine = true
-                            )
+                                    .clickable { showSupplierDropdown = true }
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedSupplier ?: "",
+                                    onValueChange = {},
+                                    label = { Text("Fornecedor (opcional)") },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(max = 300.dp)
+                                        .onGloballyPositioned { coordinates ->
+                                            inputHeight = coordinates.size.height.toFloat()
+                                        },
+                                    readOnly = true,
+                                    trailingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.ArrowDropDown,
+                                            contentDescription = "Selecionar fornecedor",
+                                            modifier = Modifier.clickable { showSupplierDropdown = true }
+                                        )
+                                    }
+                                )
+                                DropdownMenu(
+                                    expanded = showSupplierDropdown,
+                                    onDismissRequest = { showSupplierDropdown = false },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .offset(y = with(LocalDensity.current) { inputHeight.toDp() })
+                                ) {
+                                    if (suppliers.isEmpty()) {
+                                        DropdownMenuItem(
+                                            text = { Text("Nenhum fornecedor cadastrado") },
+                                            onClick = { },
+                                            enabled = false
+                                        )
+                                    } else {
+                                        suppliers.forEach { supplier -> // Corrigido: supplie -> supplier
+                                            DropdownMenuItem(
+                                                text = { Text(supplier.name) },
+                                                onClick = {
+                                                    selectedSupplier = supplier.name
+                                                    showSupplierDropdown = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
 
                             OutlinedTextField(
                                 value = fabrication,
@@ -507,7 +548,9 @@ fun ResgistrationProducts(
                                 item {
                                     // Botão para adicionar imagens
                                     OutlinedButton(
-                                        onClick = { launcher.launch("image/*") },
+                                        onClick = {
+                                            launcher.launch("image/*")
+                                        },
                                         modifier = Modifier.size(100.dp)
                                     ) {
                                         Text("+")
@@ -556,7 +599,7 @@ fun ResgistrationProducts(
                                                         size = size.ifEmpty { null },
                                                         cost = cost.toFloatOrNull(),
                                                         tags = tags.ifEmpty { null },
-                                                        supplier = supplier.ifEmpty { null }
+                                                        supplier = selectedSupplier?.ifEmpty { null },
                                                     )
                                                     description = ""
                                                     category = null
@@ -576,11 +619,11 @@ fun ResgistrationProducts(
                                                     size = ""
                                                     cost = ""
                                                     tags = ""
-                                                    supplier = ""
+                                                    selectedSupplier = null
                                                     fabrication = ""
                                                     expirationDate = ""
-                                                    imagens = emptyList()
                                                     showSuccessDialog = true
+
                                                 }
                                             } catch (e: Exception) {
                                                 Log.e("ResgistrationProducts", "Erro ao cadastrar produto: ${e.message}")
@@ -643,7 +686,7 @@ fun ResgistrationProducts(
                     if (showProductsExists) {
                         AlertDialog(
                             onDismissRequest = { showProductsExists = false },
-                            title = { Text("Produto ja cadastrado") },
+                            title = { Text("Produto já cadastrado") },
                             text = { Text("Falha ao cadastrar") },
                             confirmButton = {
                                 TextButton(
@@ -662,4 +705,3 @@ fun ResgistrationProducts(
         }
     }
 }
-

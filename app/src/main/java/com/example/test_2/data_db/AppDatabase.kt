@@ -1,21 +1,27 @@
-package com.example.test_2.data
+package com.example.test_2.data_db
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.test_2.data_db.Products
-import com.example.test_2.data_db.ProdutsDao
+import com.example.test_2.data_db.products.Products
+import com.example.test_2.data_db.supplier.Supplier
+import com.example.test_2.data_db.supplier.SupplierDao
+import com.example.test_2.data_db.products.ProdutsDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import android.util.Log
 
-@Database(entities = [Products::class], version = 2, exportSchema = false)
+
+@Database(entities = [Products::class, Supplier::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun productDao(): ProdutsDao
+    abstract fun productsDao(): ProdutsDao  // Corrigido o erro de digitação
+    abstract fun supplierDao(): SupplierDao
 
     companion object {
         @Volatile
@@ -29,20 +35,21 @@ abstract class AppDatabase : RoomDatabase() {
                         AppDatabase::class.java,
                         "app_database"
                     )
-                        .addCallback(object : RoomDatabase.Callback() {
+                        .addCallback(object : Callback() {
                             override fun onCreate(db: SupportSQLiteDatabase) {
                                 super.onCreate(db)
                                 scope.launch(Dispatchers.IO) {
                                     try {
-                                        val dao = INSTANCE?.productDao()
-
+                                        val productsDao = INSTANCE?.productsDao()
+                                        val supplierDao = INSTANCE?.supplierDao()
+                                        // Insira dados iniciais aqui, se necessário
                                     } catch (e: Exception) {
                                         Log.e("AppDatabase", "Erro ao inserir dados iniciais: ${e.message}")
                                     }
                                 }
                             }
                         })
-                        .addMigrations(MIGRATION_1_2)
+                        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)  // Corrigido para MIGRATION_2_3
                         .build()
                     INSTANCE = instance
                     instance
@@ -60,11 +67,26 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {  // Corrigido de 2_4 para 2_3
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS supplier (
+                        uid INTEGER PRIMARY KEY NOT NULL,
+                        name TEXT NOT NULL,
+                        cnpj TEXT NOT NULL,
+                        adress TEXT,
+                        email TEXT,
+                        phone TEXT
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun resetDatabase(context: Context, scope: CoroutineScope) {
             try {
                 context.deleteDatabase("app_database")
                 INSTANCE = null
-                getDatabase(context, scope) // Recria o banco, acionando onCreate
+                getDatabase(context, scope) // Recria o banco
             } catch (e: Exception) {
                 Log.e("AppDatabase", "Erro ao resetar o banco de dados: ${e.message}")
             }

@@ -24,7 +24,9 @@ import com.example.test_2.screens.invetory.Printers
 import com.example.test_2.screens.invetory.Report
 import com.example.test_2.screens.invetory.Validity
 import com.example.test_2.screens.home.DashboardScreen
+import com.example.test_2.screens.inventory.ShowSupplier
 import kotlinx.coroutines.launch
+import com.example.test_2.screens.resgister.SupplierRegistration
 
 
 @Composable
@@ -127,6 +129,18 @@ fun MainApp() {
                             viewModel = bluetoothViewModel,
                             openDrawer = { scope.launch { drawerState.open() } }
                         )
+                    }
+
+                    composable ( "ResgistrationSupplier" ){
+                        SupplierRegistration(
+                            openDrawer = {scope.launch { drawerState.open() }},
+                            navController = navController
+                        )
+                    }
+
+                    composable("ShowSupplier"){
+                        ShowSupplier(openDrawer = {scope.launch { drawerState.open() }}, navController = navController)
+
                     }
                 }
             }

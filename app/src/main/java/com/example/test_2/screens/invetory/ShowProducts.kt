@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -38,16 +39,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composetutorial.ui.theme.ComposeTutorialTheme
-import com.example.test_2.data.AppDatabase
-import com.example.test_2.data_db.ProductViewModel
-import com.example.test_2.data_db.Products
+import com.example.test_2.data_db.AppDatabase
+import com.example.test_2.data_db.products.ProductViewModel
+import com.example.test_2.data_db.products.Products
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
+import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.delay
-
+import androidx.compose.ui.layout.ContentScale
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,14 +78,14 @@ fun ShowProducts(
 
     // Carregar todos os produtos ao iniciar
     LaunchedEffect(loadingProducts) {
-     //   viewModel?.let { vm ->
-     //       scope.launch {
-       //         try {
-         //           vm.getAll()
-           //     } catch (e: Exception) {
-            //        Log.e("ShowProducts", "Erro ao carregar produtos: ${e.message}")
-             //   }
-            //}
+        //   viewModel?.let { vm ->
+        //       scope.launch {
+        //         try {
+        //           vm.getAll()
+        //     } catch (e: Exception) {
+        //        Log.e("ShowProducts", "Erro ao carregar produtos: ${e.message}")
+        //   }
+        //}
         //}
         if(loadingProducts){
             delay(2000L) // Atraso de 2 segundos
@@ -196,50 +200,75 @@ fun ShowProducts(
 
                     else{
                         items(products) { product ->
-                            Row(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text(
-                                    text = "${product.name} - ${product.sector}",
-                                    fontSize = 18.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Row {
-                                    Button(
-                                        onClick = {
-                                            productToEdit = product
-                                            editProductName = product.name
-                                            editProductSector = product.sector ?: ""
-                                            editProductFabrication = product.fabrication ?: ""
-                                            editProductValidity = product.validity ?: ""
-                                            showEditDialog = true
-                                        },
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary,
-                                            contentColor = MaterialTheme.colorScheme.onPrimary
-                                        ),
-                                        modifier = Modifier.padding(end = 8.dp)
-                                    ) {
-                                        Text("Editar", fontSize = 14.sp)
-                                    }
-                                    Button(
-                                        onClick = {
-                                            productToDelete = product
-                                            showDeleteDialog = true
-                                        },
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.error,
-                                            contentColor = MaterialTheme.colorScheme.onError
-                                        )
-                                    ) {
-                                        Text("Deletar", fontSize = 14.sp)
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "${product.name} - ${product.sector}",
+                                        fontSize = 18.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    if (!product.urlImage.isNullOrEmpty()) {
+                                        LazyRow(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            items(product.urlImage) { path ->
+                                                Image(
+                                                    painter = rememberAsyncImagePainter(model = File(path)), // Usa File para caminho absoluto
+                                                    contentDescription = "Imagem do produto",
+                                                    modifier = Modifier.size(80.dp),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        Text("Sem imagens", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
+                                    Row {
+                                        Button(
+                                            onClick = {
+                                                productToEdit = product
+                                                editProductName = product.name
+                                                editProductSector = product.sector ?: ""
+                                                editProductFabrication = product.fabrication ?: ""
+                                                editProductValidity = product.validity ?: ""
+                                                showEditDialog = true
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                contentColor = MaterialTheme.colorScheme.onPrimary
+                                            ),
+                                            modifier = Modifier.padding(end = 8.dp)
+                                        ) {
+                                            Text("Editar", fontSize = 14.sp)
+                                        }
+                                        Button(
+                                            onClick = {
+                                                productToDelete = product
+                                                showDeleteDialog = true
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.error,
+                                                contentColor = MaterialTheme.colorScheme.onError
+                                            )
+                                        ) {
+                                            Text("Deletar", fontSize = 14.sp)
+                                        }
+                                    }
+                                }
+
+
                             }
                         }
                     }
@@ -379,8 +408,10 @@ fun ShowProducts(
                                                     size = null,
                                                     cost = null,
                                                     tags = null,
-                                                    supplier = null
-                                                )
+                                                    supplier = null,
+                                                    urlImage = emptyList()
+
+                                                 )
                                             )
                                             showEditDialog = false
                                         } catch (e: Exception) {
@@ -403,4 +434,3 @@ fun ShowProducts(
             }
         }
     }
-}
