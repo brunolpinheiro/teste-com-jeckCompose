@@ -175,9 +175,9 @@ fun AppDrawer(
                         Divider(color = Color.White.copy(alpha = 0.3f))
                         drawerItem(
 
-                            labelText = "Recebimento",
-                            selected = currentRoute == "RecebimentoScreen",
-                            onClick = { onDestinationClicked("RecebimentoScreen") },
+                            labelText = "mandar arquivo db",
+                            selected = currentRoute == "DatabaseImport",
+                            onClick = { onDestinationClicked("DatabaseImport") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                         Divider(color = Color.White.copy(alpha = 0.3f))

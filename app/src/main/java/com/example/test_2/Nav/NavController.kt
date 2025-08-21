@@ -2,6 +2,7 @@ package com.example.test_2.Nav
 
 
 
+import DataBaseImport
 import LoginScreen
 import ResgistrationProducts
 import androidx.compose.material3.DrawerValue
@@ -19,6 +20,7 @@ import com.example.test_2.screens.login.SplashScreen
 import com.example.test_2.screens.invetory.Receipt
 import com.example.test_2.config.ConectPrinters
 import com.example.test_2.menu.AppDrawer
+import com.example.test_2.screens.roomBackup.DataBaseExport
 import com.example.test_2.screens.invetory.ShowProducts
 import com.example.test_2.screens.invetory.Printers
 import com.example.test_2.screens.invetory.Report
@@ -122,6 +124,18 @@ fun MainApp() {
                             openDrawer = {scope.launch { drawerState.open() }})
 
 
+                    }
+                    composable("DatabaseExport") {
+                        DataBaseExport(
+                            openDrawer = {scope.launch { drawerState.open() }})
+
+
+                    }
+
+                    composable("DatabaseImport"){
+                        DataBaseImport (
+                            openDrawer = {scope.launch { drawerState.open() }}
+                        )
                     }
                     composable("Printers") {
                         Printers(

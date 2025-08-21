@@ -14,20 +14,23 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import com.example.composetutorial.ui.theme.ComposeTutorialTheme
 import com.example.test_2.Nav.MainApp
+import de.raphaelebner.roomdatabasebackup.core.RoomBackup
+import androidx.compose.runtime.CompositionLocalProvider
+import com.example.test_2.screens.roomBackup.LocalRoomBackup
 
 
 
 
 
 class MainActivity : ComponentActivity() {
+    private lateinit var roomBackup: RoomBackup
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        roomBackup = RoomBackup(this)
         setContent {
             ComposeTutorialTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+                CompositionLocalProvider(LocalRoomBackup provides roomBackup) {
                     MainApp()
                 }
             }
