@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.example.carteogest.bluetooth.model.BluetoothViewModel
 import com.example.carteogest.menu.TopBarWithLogo
@@ -123,17 +124,18 @@ fun ConectPrinters(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { selectedPrinter = printer }
-                                .padding(horizontal = 8.dp),
+                                .padding(horizontal = 8.dp)
+                                .background( Color(0xFF004AAD)),
                             shape = MaterialTheme.shapes.medium,
                             colors = if (selectedPrinter == printer)
                                 CardDefaults.cardColors(MaterialTheme.colorScheme.secondary)
                             else
-                                CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+                                CardDefaults.cardColors(Color(0xFF004AAD))
                         ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(8.dp),
                                 contentAlignment = Alignment.CenterStart
                             ) {
                                 Text(

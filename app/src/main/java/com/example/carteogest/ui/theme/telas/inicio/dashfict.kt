@@ -1,13 +1,8 @@
 package com.example.carteogest.menu
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.lifecycle.ViewModel
-import com.example.carteogest.ui.telas.inicio.DashboardScreenum
 import com.example.carteogest.ui.telas.inicio.Produto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 
 class ProdutoViewModel : ViewModel() {

@@ -28,9 +28,6 @@ import com.example.CarteoGest.R
 
 @Composable
 fun SplashScreen(
-    authViewModel: AuthViewModel,
-    navController: NavController,
-    viewModel: BluetoothViewModel
 ) {
     var usuario by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }

@@ -43,7 +43,7 @@ fun DashboardScreen(openDrawer: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(12.dp)
+                .padding(0.dp)
                 .padding(paddingValues)
         ) {
             Text(
@@ -58,7 +58,7 @@ fun DashboardScreen(openDrawer: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(all=0.dp).background(MaterialTheme.colorScheme.background)) {
                 KpiCard("Vendas Hoje", "R$ 1.200,00", Modifier.weight(1f))
                 Spacer(Modifier.width(8.dp).background(MaterialTheme.colorScheme.background))
                 KpiCard("Total Mês", "R$ 25.300,00", Modifier.weight(1f))

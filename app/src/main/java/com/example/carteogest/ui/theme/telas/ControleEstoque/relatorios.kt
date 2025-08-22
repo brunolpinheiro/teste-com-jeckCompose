@@ -1,4 +1,4 @@
-package com.example.carteogest.ui.telas.ControleEstoque
+/*package com.example.carteogest.ui.telas.ControleEstoque
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -236,3 +236,4 @@ fun EstoqueTable(produtos: List<ProdutoEstoque>) {
         }
     }
 }
+*/

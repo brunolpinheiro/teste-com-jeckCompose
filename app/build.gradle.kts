@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    kotlin("kapt")
+
 }
 
 android {
@@ -33,16 +35,34 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs = listOf("-Xjvm-default=all")
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "2.0.20"
+        kotlinCompilerExtensionVersion = "2.9.20"
     }
 }
 
 dependencies {
+
+
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.1") // versão recente
+    //salva estado
+    implementation("androidx.datastore:datastore-preferences:1.1.0")
+    // Room
+    implementation("androidx.room:room-runtime:2.7.2")
+
+    kapt("androidx.room:room-compiler:2.7.2")
+
+    // Room + Kotlin Coroutines
+    implementation("androidx.room:room-ktx:2.7.2")
+
+    // Outros exemplos de dependências comuns
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+
     implementation("androidx.compose.material3:material3:1.1.0")
     implementation("androidx.compose.ui:ui:1.7.0")
     implementation("androidx.compose.material:material-icons-core:1.7.0")

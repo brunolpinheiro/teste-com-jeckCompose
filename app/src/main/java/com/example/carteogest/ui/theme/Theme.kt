@@ -17,7 +17,7 @@ private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF004AAD), // Cor laranja para botão e texto "Rápida"
     onPrimary = Color.Black, // Texto branco no botão
     background = Color.White, // Fundo preto
-    onSurface = Color.Black, // Texto branco em fundo escuro
+    onSurface = Color.White, // Texto branco em fundo escuro
     secondary = Color.White
 )
 

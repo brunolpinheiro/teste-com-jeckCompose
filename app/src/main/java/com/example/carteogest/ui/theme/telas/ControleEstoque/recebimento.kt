@@ -1,4 +1,4 @@
-// RecebimentoScreen.kt
+/*// RecebimentoScreen.kt
 package com.example.carteogest.ui.telas.ControleEstoque
 
 import androidx.compose.foundation.layout.*
@@ -62,6 +62,12 @@ fun RecebimentoScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                OutlinedTextField(
+                    value = codigoProduto,
+                    onValueChange = { codigoProduto = it },
+                    label = { Text("Nome do Fornecedor") },
+                    modifier = Modifier.fillMaxWidth()
+                )
                 OutlinedTextField(
                     value = codigoProduto,
                     onValueChange = { codigoProduto = it },
@@ -142,3 +148,4 @@ fun RecebimentoScreen(
         }
     }
 }
+*/

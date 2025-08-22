@@ -94,7 +94,10 @@ fun DashboardScreenum(
         floatingActionButton = {
             Box {
                 FloatingActionButton(
-                    onClick = { fabMenuExpanded = !fabMenuExpanded }
+                    onClick = { fabMenuExpanded = !fabMenuExpanded },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White,
+                    modifier = Modifier.size(56.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "cadastro")
                 }
@@ -108,6 +111,9 @@ fun DashboardScreenum(
                         text = { Text("Cadastrar Produtos") },
                         onClick = { navController.navigate("ProdutoCadastroScreen")// ação: abrir tela de cadastro
                         },
+                        modifier = Modifier.background(Color(0xFF004AAD))
+                            .padding(12.dp),
+                        
 
                     )
                 }
@@ -249,7 +255,7 @@ fun DashboardScreenum(
                                     Text("Inserir Validade", color = Color.White,style = MaterialTheme.typography.bodySmall)
                                 }
                                 Button(
-                                    onClick = { onAjustarEstoque(produto) },
+                                    onClick = { navController.navigate("ProdutoCadastroScreen") },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004AAD)),
                                     modifier = Modifier.weight(1f)
                                 ) {

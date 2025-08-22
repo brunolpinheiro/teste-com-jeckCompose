@@ -28,6 +28,8 @@ import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.DpOffset
 import androidx.navigation.NavController
 import com.example.carteogest.ui.telas.ControleEstoque.model.fornecedoresViewModel
+import androidx.compose.ui.draw.clip
 
 
 data class fornecedores(
@@ -77,23 +80,36 @@ fun Fornecedores(
         floatingActionButton = {
             Box {
                 FloatingActionButton(
-                    onClick = { fabMenuExpanded = !fabMenuExpanded }
+                    onClick = { fabMenuExpanded = !fabMenuExpanded },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White,
+                    modifier = Modifier.size(56.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Menu")
+                    Icon(Icons.Default.Add, contentDescription = "Menu", tint = Color.White)
+
                 }
 
                 DropdownMenu(
                     expanded = fabMenuExpanded,
                     onDismissRequest = { fabMenuExpanded = false },
-                    offset = DpOffset(x = 0.dp, y = (-56).dp) // aparece acima do FAB
+                    offset = DpOffset(x = 0.dp, y = (-56).dp)
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Cadastrar Fornecedor") },
-                        onClick = { navController.navigate("SupplierRegistrationScreen")// ação: abrir tela de cadastro
-                        }
-                    )
+                        text = {
+                            Text(
+                                "Cadastrar Fornecedor",
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)
 
+                            )
+                        },
+                        onClick = { navController.navigate("SupplierRegistrationScreen") },
+                        modifier = Modifier
+                            .background(Color(0xFF004AAD), shape = RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(8.dp))
+                    )
                 }
+
             }
         }
     ) {  paddingValues ->
@@ -172,12 +188,7 @@ fun Fornecedores(
                         ) {
 
                             Text(fornecedores.nome, style = MaterialTheme.typography.titleMedium)
-                            Divider(
-                                color = Color.Gray,
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(1.dp)
-                            )
+
                         }
 
                         }
@@ -189,10 +200,10 @@ fun Fornecedores(
         }
     }
 
-/*
+
 @Composable
 fun FornecedorItem(
-    fornecedor: fornecedor
+    fornecedores: fornecedores
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -214,7 +225,7 @@ fun FornecedorItem(
 
         }
     }
-}*/
+}
 @Composable
 fun FilterChipfor(label: String, selected: Boolean, onClick: () -> Unit) {
     Surface(

@@ -156,18 +156,18 @@ class BluetoothViewModel(application: Application) : AndroidViewModel(applicatio
                 var y = 30
 
                 // 1️⃣ Primeira linha: primeira palavra maior + linha horizontal
-                val parts = text1.split(" ", limit = 2)
-                val firstWord = parts[0]
-                val rest = if (parts.size > 1) parts[1] else ""
+                //val parts = text1.split(" ", limit = 2)
+                //val firstWord = parts[0]
+                //val rest = if (parts.size > 1) parts[1] else ""
 
-                comandos.appendLine("""TEXT 4 0 10 $y $firstWord""") // primeira palavra grande
+                comandos.appendLine("""TEXT 4 0 10 $y $text1""") // primeira palavra grande
                 y += 40
                 comandos.appendLine("""LINE 10 $y 350 $y 2""")        // linha horizontal
                 y += 10
-                if (rest.isNotEmpty()) {
+                /*if (rest.isNotEmpty()) {    
                     comandos.appendLine("""TEXT 2 0 10 $y $rest""") // resto da primeira linha
                     y += 30
-                }
+                }*/
 
                 // 2️⃣ Demais linhas: fonte menor, sem linha horizontal
                 val otherLines = listOf(

@@ -23,21 +23,24 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.carteogest.bluetooth.model.BluetoothViewModel
 import com.example.CarteoGest.R
-
-import com.example.carteogest.ui.theme.ComposeTutorialTheme
+import com.example.carteogest.login.UserViewModel
 
 @Composable
 fun AppDrawer(
     drawerState: DrawerState,
     viewModel: BluetoothViewModel,
+    userViewModel: UserViewModel,
     navController: NavController,
     onDestinationClicked: (String) -> Unit,
     content: @Composable () -> Unit
 ) {
+    val usuario = userViewModel.usuarioLogado.collectAsState().value
+
     val currentRoute = navController.currentBackStackEntry?.destination?.route
     var subMenu1 by remember { mutableStateOf(false) }
     var subMenu2 by remember { mutableStateOf(false) }
     var subMenu3 by remember { mutableStateOf(false) }
+    var subMenu4 by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -200,8 +203,8 @@ fun AppDrawer(
                         drawerItem(
 
                             labelText = "Validades",
-                            selected = currentRoute == "ValidadesScreen",
-                            onClick = { onDestinationClicked("ValidadesScreen") },
+                            selected = currentRoute == "TelaValidades",
+                            onClick = { onDestinationClicked("TelaValidades") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                         Divider(color = Color.White.copy(alpha = 0.3f))
@@ -245,6 +248,13 @@ fun AppDrawer(
                             onClick = { onDestinationClicked("SupplierRegistrationScreen") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
+                        drawerItem(
+
+                            labelText = "Usuarios",
+                            selected = currentRoute == "UserRegistrationScreen",
+                            onClick = { onDestinationClicked("UserRegistrationScreen") },
+                            modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
+                        )
                     }
                     Divider(color = Color.White.copy(alpha = 0.3f))
                     drawerItem(
@@ -275,14 +285,37 @@ fun AppDrawer(
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                         Divider(color = Color.White.copy(alpha = 0.3f))
+                    }
+                    drawerItem(
+
+                        labelText = "Usuários e Permissões",
+                        selected = false,
+                        onClick = { subMenu4 = !subMenu4 }
+                    )
+                    Divider(color = Color.White.copy(alpha = 0.3f))
+                    if (subMenu4) {
+                            drawerItem(
+
+                                labelText = "Usuarios",
+                                selected = currentRoute == "UserListScreen",
+                                onClick = { onDestinationClicked("UserListScreen") },
+                                modifier = Modifier.padding(
+                                    start = 32.dp,
+                                    top = 4.dp,
+                                    bottom = 4.dp
+                                )
+                            )
+
+                        Divider(color = Color.White.copy(alpha = 0.3f))
                         drawerItem(
 
-                            labelText = "Usuários e Permissões",
-                            selected = false,
-                            onClick = { subMenu3 = !subMenu3 }
+                            labelText = "Editas Usuarios",
+                            selected = currentRoute == "UserEditScreen",
+                            onClick = { onDestinationClicked("UserEditScreen") },
+                            modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
-                        Divider(color = Color.White.copy(alpha = 0.3f))
                     }
+
                 }
             }
         },
