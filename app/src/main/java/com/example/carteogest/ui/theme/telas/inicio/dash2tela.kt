@@ -1,4 +1,4 @@
-package com.example.carteogest.ui.telas.inicio
+/*package com.example.carteogest.ui.telas.inicio
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
@@ -24,7 +24,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -40,9 +39,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.carteogest.menu.ProdutoViewModel
+import com.example.carteogest.datadb.data_db.products.ProductViewModel
 import com.example.carteogest.menu.TopBarWithLogo
-import com.example.carteogest.ui.telas.inicio.Produto
 import kotlinx.coroutines.launch
 import com.example.CarteoGest.R
 import androidx.compose.foundation.Image
@@ -53,25 +51,33 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.ui.unit.DpOffset
 import androidx.navigation.NavController
+import com.example.carteogest.factory.ProductViewModelFactory
+import com.example.carteogest.datadb.data_db.AppDatabase
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 
 
 @Composable
 fun DashboardScreenum(
-    viewModel: ProdutoViewModel = viewModel(),
     onAjustarEstoque: (Produto) -> Unit,
     onInserirValidade: (Produto) -> Unit,
     openDrawer: () -> Unit,
     navController: NavController
 ) {
-    val produtos by viewModel.produtos.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val db = AppDatabase.getDatabase(context, scope)
+    val produtoViewModel: ProductViewModel = viewModel(
+        factory = ProductViewModelFactory(db.productsDao())
+    )
+
+    val produtos by produtoViewModel.products
     var showFilters by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
 
     var query by remember { mutableStateOf("") }
     val produtosFiltrados = produtos
-        .filter { it.nome.contains(query, ignoreCase = true) }
-        .sortedBy { it.validade }
-
+        .filter { it.name.contains(query, ignoreCase = true) }
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -153,7 +159,7 @@ fun DashboardScreenum(
                     }
 
                     // Criar chips para cada categoria única
-                    items(produtos.map { it.categoria }.distinct()) { categoria ->
+                    items(produtos.map {products.sector }.distinct()) { categoria ->
                         FilterChip(
                             selected = true,
                             onClick = { /*...*/ },
@@ -173,7 +179,7 @@ fun DashboardScreenum(
             ) {
                 Text("Produto", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
                 Text("Quantidade", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                Text("Validade", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+                //Text("Validade", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
             }
             Spacer(modifier = Modifier.height(6.dp))
 
@@ -182,7 +188,7 @@ fun DashboardScreenum(
 
             ) {
                 items(produtosFiltrados) { produto ->
-                    val isExpanded = expandedItem == produto.nome
+                    val isExpanded = expandedItem == produto.name
 
                     Column(
                         modifier = Modifier
@@ -195,7 +201,7 @@ fun DashboardScreenum(
                                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), // sombra azul
                                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                             )
-                            .clickable { expandedItem = if (isExpanded) null else produto.nome }
+                            .clickable { expandedItem = if (isExpanded) null else produto.name }
                             .padding(6.dp)
                     ) {
                         Row(
@@ -206,7 +212,7 @@ fun DashboardScreenum(
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                                contentDescription = produto.nome,
+                                contentDescription = produto.name,
                                 modifier = Modifier
                                     .size(60.dp)
                                     .clip(RoundedCornerShape(8.dp))
@@ -220,16 +226,16 @@ fun DashboardScreenum(
 
                             Spacer(modifier = Modifier.width(1.dp))
 
-                            Text(produto.nome, style = MaterialTheme.typography.titleMedium)
+                            Text(produto.name, style = MaterialTheme.typography.titleMedium)
                             Divider(
                                 color = Color.Gray,
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .width(1.dp)
                             )
-                            Text(" ${produto.quantidade}", style = MaterialTheme.typography.bodyLarge)
+                            Text(" ${produto.quantity}", style = MaterialTheme.typography.bodyLarge)
                             dividerPro()
-                            Text(" ${produto.validade}", style = MaterialTheme.typography.bodyLarge)
+                            //Text(" ${produto.validity}", style = MaterialTheme.typography.bodyLarge)
                         }
 
                         AnimatedVisibility(visible = isExpanded,) {
@@ -240,7 +246,7 @@ fun DashboardScreenum(
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 Button(
-                                    onClick = { onAjustarEstoque(produto) },
+                                    onClick = { false },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004AAD)),
                                     modifier = Modifier.weight(1f)
                                 ) {
@@ -248,7 +254,7 @@ fun DashboardScreenum(
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Button(
-                                    onClick = { onInserirValidade(produto) },
+                                    onClick = { false },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF008C4A)),
                                     modifier = Modifier.weight(1f)
                                 ) {
@@ -356,3 +362,4 @@ fun dividerPro(){
 }
 
 
+*/

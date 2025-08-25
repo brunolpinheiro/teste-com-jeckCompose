@@ -11,23 +11,27 @@ import com.example.carteogest.ui.theme.ComposeTutorialTheme
 import android.content.pm.PackageManager
 import android.Manifest
 import android.os.Build
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.content.ContextCompat
 import com.example.carteogest.menu.MainApp
-
-
-
+import com.example.carteogest.ui.telas.roomBackup.LocalRoomBackup
+import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 
 
 class MainActivity : ComponentActivity() {
+    private lateinit var roomBackup: RoomBackup
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        roomBackup = RoomBackup(this)
         setContent {
             ComposeTutorialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
-                ) {
+                ) {   CompositionLocalProvider(LocalRoomBackup provides roomBackup) {
                     MainApp()
+                }
                 }
             }
         }

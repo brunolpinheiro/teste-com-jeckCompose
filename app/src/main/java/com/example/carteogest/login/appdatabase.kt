@@ -1,4 +1,4 @@
-// AppDatabase.kt
+/* AppDatabase.kt
 package com.example.carteogest.datadb
 
 import android.content.Context
@@ -74,3 +74,4 @@ abstract class AppDatabase : RoomDatabase() {
 
 
 
+*/

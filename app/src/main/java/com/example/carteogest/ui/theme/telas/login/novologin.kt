@@ -48,7 +48,7 @@ fun LoginScreen(
         Text(
             text = "Etiqueta",
             fontSize = 30.sp,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = MaterialTheme.colorScheme.onPrimary,
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(all = 8.dp)
         )

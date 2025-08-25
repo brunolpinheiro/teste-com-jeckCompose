@@ -46,7 +46,9 @@ android {
 }
 
 dependencies {
+    implementation("de.raphaelebner:roomdatabasebackup:1.1.0")
 
+    implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.1") // versão recente
     //salva estado

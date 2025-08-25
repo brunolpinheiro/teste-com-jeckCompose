@@ -17,7 +17,7 @@ class UserRepository(private val userDao: UserDao,
         return bytes.joinToString("") { "%02x".format(it) }
     }
     suspend fun addUser(user: User){
-        val userHashed = user.copy(senha = hashSenha(user.senha))
+        val userHashed = user.copy(senha = user.senha)
         userDao.addUser(userHashed)
     }
     suspend fun updateUser(user: User) = userDao.updateUser(user)

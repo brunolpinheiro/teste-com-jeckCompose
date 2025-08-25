@@ -20,22 +20,31 @@ import com.example.carteogest.ui.telas.ControleEstoque.StockAdjustmentScreen
 import com.example.carteogest.ui.telas.ControleEstoque.Printers
 import com.example.carteogest.ui.telas.ControleEstoque.RelatoriosEstoqueScreen
 import com.example.carteogest.ui.telas.ControleEstoque.ValidadesScreen
-import com.example.carteogest.ui.telas.ControleEstoque.ProdutoCadastroScreen
 import com.example.carteogest.ui.telas.inicio.DashboardScreen
-import com.example.carteogest.ui.telas.inicio.DashboardScreenum
+import com.example.carteogest.ui.telas.ControleEstoque.DashboardScreenum
 import com.example.carteogest.ui.telas.inicio.Fornecedores
-import com.example.carteogest.ui.telas.ControleEstoque.SupplierRegistrationScreen
 import com.example.carteogest.ui.telas.ControleEstoque.TelaValidades
 import com.example.carteogest.ui.telas.cadastro.UserRegistrationScreen
 import com.example.carteogest.login.UserViewModel
-import com.example.carteogest.ui.telas.ControleEstoque.model.fornecedoresViewModel
 import com.example.carteogest.ui.theme.telas.usuarios.UserListScreen
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.example.carteogest.datadb.AppDatabase
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.carteogest.datadb.data_db.AppDatabase
+import com.example.carteogest.datadb.data_db.products.ProductViewModel
+import com.example.carteogest.datadb.data_db.supplier.SupplierViewModel
+import com.example.carteogest.factory.ProductViewModelFactory
+import com.example.carteogest.factory.supplierViewModelFactory
+import com.example.carteogest.iu.telas.ControleEstoque.SupplierRegistration
 import com.example.carteogest.login.UserPrefs
 import com.example.carteogest.login.UserRepository
+import com.example.carteogest.ui.telas.ControleEstoque.ProdutoCadastroScreen
+import com.example.carteogest.ui.telas.roomBackup.DataBaseExport
+import com.example.carteogest.ui.telas.roomBackup.DataBaseImport
 import com.example.carteogest.ui.theme.telas.cadastro.modal.UserViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
@@ -46,7 +55,7 @@ fun MainApp() {
 
     // Cria UserViewModel
 
-    val db = AppDatabase.getDatabase(context)
+    val db = AppDatabase.getDatabase(context, CoroutineScope(Dispatchers.IO))
     val userPrefs = UserPrefs(context)
     val userRepo = UserRepository(db.userDao(), userPrefs)
 
@@ -58,13 +67,16 @@ fun MainApp() {
     val bluetoothViewModel: BluetoothViewModel = viewModel(
         factory = BluetoothViewModelFactory(context as android.app.Application)
     )
-    val produtoViewModel: ProdutoViewModel = viewModel()
-    val fornecedoresViewModel: fornecedoresViewModel = viewModel()
+
+    val produtoViewModel: ProductViewModel = viewModel(
+        factory = ProductViewModelFactory(db.productsDao())
+    )
+    val supllierViewModel: SupplierViewModel = viewModel(
+        factory = supplierViewModelFactory(db.supplierDao()))
 
     // Inicializa dados
     LaunchedEffect(Unit) {
-        produtoViewModel.carregarProdutos()
-        fornecedoresViewModel.carregarfornecedores()
+        produtoViewModel.getAll()
     }
 
     // Observa autenticação
@@ -112,14 +124,13 @@ fun MainApp() {
                             }
 
                             composable("dash1") {
-                                val produtoViewModel: ProdutoViewModel = viewModel()
+                                /*val produtoViewModel: ProductsViewModel = viewModel()
 
                                 // Garante que os produtos fictícios sejam carregados
                                 LaunchedEffect(Unit) {
                                     produtoViewModel.carregarProdutos()
-                                }
+                                }*/
                                 DashboardScreenum(
-                                    viewModel = viewModel(),
                                     onAjustarEstoque = { },
                                     onInserirValidade = { },
                                     openDrawer = { scope.launch { drawerState.open() } },
@@ -172,16 +183,17 @@ fun MainApp() {
                                     openDrawer = { scope.launch { drawerState.open() } },
                                 )
                             }
-                            composable("ProdutoCadastroScreen") {
+                            composable(
+                                "ProdutoCadastroScreen/{produtoId}",
+                                arguments = listOf(navArgument("produtoId") { type = NavType.IntType })
+                            ) { backStackEntry ->
+                                val produtoId = backStackEntry.arguments?.getInt("produtoId") ?: -1
                                 ProdutoCadastroScreen(
-                                    categorias = emptyList(),
-                                    unidadesMedida = emptyList(),
-                                    statusOptions = emptyList(),
-                                    onSalvar = { },
                                     openDrawer = { scope.launch { drawerState.open() } },
+                                    productViewModel = produtoViewModel,
+                                    produtoId = produtoId,
+                                    navController = navController
                                 )
-
-
                             }
                             composable("Printers") {
                                 Printers(
@@ -190,9 +202,17 @@ fun MainApp() {
                                     openDrawer = { scope.launch { drawerState.open() } }
                                 )
                             }
-                            composable("SupplierRegistrationScreen") {
-                                SupplierRegistrationScreen(
-                                    openDrawer = { scope.launch { drawerState.open() } }
+
+                            composable(
+                                "SupplierRegistration/{fornecedoresId}",
+                                arguments = listOf(navArgument("fornecedoresId") { type = NavType.IntType })
+                            ) { backStackEntry ->
+                                val fornecedoresId = backStackEntry.arguments?.getInt("fornecedoresId") ?: -1
+                                SupplierRegistration(
+                                    supplierViewModel = supllierViewModel,
+                                    openDrawer = { scope.launch { drawerState.open() } },
+                                    navController = navController,
+                                    fornecedoresid = fornecedoresId
                                 )
                             }
                             composable("StockAdjustmentScreen") {
@@ -224,6 +244,18 @@ fun MainApp() {
                                     openDrawer = { scope.launch { drawerState.open() } }
 
 
+                                )
+                            }
+                            composable("DatabaseExport") {
+                                DataBaseExport(
+                                    openDrawer = {scope.launch { drawerState.open() }})
+
+
+                            }
+
+                            composable("DatabaseImport"){
+                                DataBaseImport (
+                                    openDrawer = {scope.launch { drawerState.open() }}
                                 )
                             }
 

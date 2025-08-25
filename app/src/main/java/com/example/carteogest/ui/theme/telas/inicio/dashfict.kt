@@ -1,4 +1,4 @@
-package com.example.carteogest.menu
+/*package com.example.carteogest.menu
 import androidx.lifecycle.ViewModel
 import com.example.carteogest.ui.telas.inicio.Produto
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,3 +21,4 @@ class ProdutoViewModel : ViewModel() {
     }
 }
 
+*/

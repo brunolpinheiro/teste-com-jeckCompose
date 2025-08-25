@@ -1,4 +1,5 @@
 package com.example.carteogest.ui.telas.inicio
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,17 +29,23 @@ import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.DpOffset
 import androidx.navigation.NavController
-import com.example.carteogest.ui.telas.ControleEstoque.model.fornecedoresViewModel
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import com.example.carteogest.datadb.data_db.AppDatabase
+import com.example.carteogest.datadb.data_db.supplier.SupplierViewModel
+import com.example.carteogest.factory.supplierViewModelFactory
 
 
 data class fornecedores(
@@ -46,26 +53,37 @@ data class fornecedores(
 
 @Composable
 fun Fornecedores(
-    viewModel: fornecedoresViewModel = viewModel(),
     openDrawer: () -> Unit,
     navController: NavController
 ) {
-    val fornecedores by viewModel.fornecedores.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // Obtem o DB e o DAO
+    val db = AppDatabase.getDatabase(context, scope)
+    val supllierViewModel: SupplierViewModel = viewModel(
+        factory = supplierViewModelFactory(db.supplierDao()))
+
+    val fornecedores by supllierViewModel.supplier
+
+    var query by remember { mutableStateOf("") }
     var showFilters by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
 
-    var query by remember { mutableStateOf("") }
-    val fornecedoresFiltrados = fornecedores
-        .filter { it.nome.contains(query, ignoreCase = true) }
+    val fornecedoresFiltrados = fornecedores.filter { fornecedor ->
+        fornecedor.name.contains(query, ignoreCase = true)
+    }
+
 
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
     var expandedItem by remember { mutableStateOf<String?>(null) }
     var isExpanded by remember { mutableStateOf(false) }
     var fabMenuExpanded by remember { mutableStateOf(false) }
 
-
+    LaunchedEffect(Unit) {
+        supllierViewModel.getAll()
+    }
     Scaffold(
         topBar = {
             TopBarWithLogo(
@@ -103,7 +121,7 @@ fun Fornecedores(
 
                             )
                         },
-                        onClick = { navController.navigate("SupplierRegistrationScreen") },
+                        onClick = { navController.navigate("SupplierRegistration/-1") },
                         modifier = Modifier
                             .background(Color(0xFF004AAD), shape = RoundedCornerShape(8.dp))
                             .clip(RoundedCornerShape(8.dp))
@@ -131,45 +149,17 @@ fun Fornecedores(
                 },
                 modifier = Modifier.fillMaxWidth()
             )
-            /*
-            if (showFilters) {
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // Botão para mostrar todas as categorias
-                    item {
-                        FilterChip(
-                            selected = true,
-                            onClick = { /*...*/ },
-                            label = { Text("Todas") }) // ✅ Composable
-                    }
-
-                    // Criar chips para cada categoria única
-                    items(fornecedores.map { it.categoria }.distinct()) { categoria ->
-                        FilterChip(
-                            selected = true,
-                            onClick = { /*...*/ },
-                            label = { Text(categoria) } // ✅ Composable
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))*/
-
-
             LazyColumn(
                 modifier = Modifier.fillMaxSize() .padding(vertical = 2.dp)
 
             ) {
                 items(fornecedoresFiltrados) { fornecedores ->
-                    val isExpanded = expandedItem == fornecedores.nome
+                    val isExpanded = expandedItem == fornecedores.name
 
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 2.dp)
+                            .padding(vertical = 4.dp)
                             .background(Color.White, shape = RoundedCornerShape(8.dp))
                             .shadow(
                                 elevation = 4.dp,
@@ -177,19 +167,36 @@ fun Fornecedores(
                                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), // sombra azul
                                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                             )
-                            .clickable { expandedItem = if (isExpanded) null else fornecedores.nome }
-                            .padding(6.dp)
+                            .clickable { expandedItem = if (isExpanded) null else fornecedores.name }
+                            .padding(18 .dp)
                     ) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(12.dp)
-                        ) {
 
-                            Text(fornecedores.nome, style = MaterialTheme.typography.titleMedium)
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(fornecedores.name, style = MaterialTheme.typography.titleMedium)
+                            Divider(color = Color.Gray, modifier = Modifier.fillMaxHeight().width(1.dp))
+                            Text(fornecedores.cnpj, style = MaterialTheme.typography.titleMedium)
 
                         }
+                        AnimatedVisibility(visible = isExpanded) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+
+                                Button(
+                                    onClick ={ navController.navigate("SupplierRegistration/${fornecedores.uid}") },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF004AAD)),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Editar Fornecedor", color = Color.White)
+                                }
+                            }
 
                         }
                     }
@@ -201,31 +208,6 @@ fun Fornecedores(
     }
 
 
-@Composable
-fun FornecedorItem(
-    fornecedores: fornecedores
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clickable { expanded = true },
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(text = fornecedores.nome, style = MaterialTheme.typography.titleMedium)
-            }
-
-        }
-    }
-}
 @Composable
 fun FilterChipfor(label: String, selected: Boolean, onClick: () -> Unit) {
     Surface(
@@ -244,5 +226,6 @@ fun FilterChipfor(label: String, selected: Boolean, onClick: () -> Unit) {
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
         )
     }
+}
 }
 

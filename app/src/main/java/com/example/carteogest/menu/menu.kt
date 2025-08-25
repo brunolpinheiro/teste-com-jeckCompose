@@ -236,8 +236,8 @@ fun AppDrawer(
                         drawerItem(
 
                             labelText = "Produtos",
-                            selected = currentRoute == "ProdutoCadastroScreen",
-                            onClick = { onDestinationClicked("ProdutoCadastroScreen") },
+                            selected = currentRoute == "ProdutoCadastroScreen/-1",
+                            onClick = { onDestinationClicked("ProdutoCadastroScreen/-1") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                         Divider(color = Color.White.copy(alpha = 0.3f))
@@ -248,6 +248,7 @@ fun AppDrawer(
                             onClick = { onDestinationClicked("SupplierRegistrationScreen") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
                         drawerItem(
 
                             labelText = "Usuarios",
@@ -282,6 +283,22 @@ fun AppDrawer(
                                 )
 
                             },
+                            modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
+                        )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
+                        drawerItem(
+
+                            labelText = "mandar arquivo db",
+                            selected = currentRoute == "DatabaseImport",
+                            onClick = { onDestinationClicked("DatabaseImport") },
+                            modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
+                        )
+                        Divider(color = Color.White.copy(alpha = 0.3f))
+                        drawerItem(
+
+                            labelText = "Export",
+                            selected = currentRoute == "DatabaseExport",
+                            onClick = { onDestinationClicked("DatabaseExport") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                         Divider(color = Color.White.copy(alpha = 0.3f))

@@ -23,7 +23,7 @@ fun UserRegistrationScreen(
     var nome by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
     var permissao by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf(false) }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     Scaffold(
@@ -54,10 +54,6 @@ fun UserRegistrationScreen(
                 label = { Text("Senha") },
                 visualTransformation = PasswordVisualTransformation()
             )
-            TextField(
-                value = status,
-                onValueChange = { status = it },
-                label = { Text("Tipo de usuario") })
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 8.dp)
