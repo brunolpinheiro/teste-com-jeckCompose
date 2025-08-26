@@ -50,6 +50,7 @@
         implementation(libs.material3)
         implementation(libs.volley)
         implementation(libs.androidx.glance)
+        implementation(libs.androidx.foundation)
         debugImplementation("androidx.compose.ui:ui-tooling")
         implementation("androidx.navigation:navigation-compose:2.8.0")
         implementation(libs.androidx.core.ktx)

@@ -9,8 +9,7 @@ data class Products(
     @PrimaryKey val uid: Int = 0,
     @ColumnInfo(name = "name") val name: String, // Mapeado como 'description'
     @ColumnInfo(name = "sector") val sector: String, // Mapeado como 'category'
-    @ColumnInfo(name = "fabrication") val fabrication: String?,
-    @ColumnInfo(name = "validity") val validity: String?, // Mapeado como 'expirationDate'
+ // Mapeado como 'expirationDate'
     @ColumnInfo(name = "sku_code") val skuCode: String,
     @ColumnInfo(name = "price") val price: Float,
     @ColumnInfo(name = "promotional_price") val promotionalPrice: Float?,

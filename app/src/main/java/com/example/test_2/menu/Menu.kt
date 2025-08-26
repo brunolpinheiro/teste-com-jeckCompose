@@ -200,8 +200,8 @@ fun AppDrawer(
                         drawerItem(
 
                             labelText = "Validades",
-                            selected = currentRoute == "ValidadesScreen",
-                            onClick = { onDestinationClicked("ValidadesScreen") },
+                            selected = currentRoute == "ValidityOfProducts",
+                            onClick = { onDestinationClicked("ValidityOfProducts") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                         Divider(color = Color.White.copy(alpha = 0.3f))
@@ -243,6 +243,13 @@ fun AppDrawer(
                             labelText = "Fornecedores",
                             selected = currentRoute == "ResgistrationSupplier",
                             onClick = { onDestinationClicked("ResgistrationSupplier") },
+                            modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
+                        )
+                        drawerItem(
+
+                            labelText = "Validades",
+                            selected = currentRoute == "ResgistrationValidity",
+                            onClick = { onDestinationClicked("ResgistrationValidity") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                     }

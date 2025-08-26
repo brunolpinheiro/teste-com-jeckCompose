@@ -78,11 +78,15 @@ fun ResgistrationProducts(
     val viewModelSupplier = remember { database?.let { SupplierViewModel(it) } }
     val suppliers by viewModelSupplier?.supplier ?: remember { mutableStateOf(emptyList<Supplier>()) } // Corrigido: "supplier" -> "suppliers"; adicionei tipo genérico para clareza
     var showSectorDropdown by remember { mutableStateOf(false) }
+    var showDeleteDatabase by remember {mutableStateOf(false)}
+    var notShowDeleteDatabase by remember {mutableStateOf(false)}
     var showUnitOfMeasureDropdown by remember { mutableStateOf(false) }
+    var notProductSucess by remember {mutableStateOf(false)}
     var showStatusDropdown by remember { mutableStateOf(false) }
     var showSupplierDropdown by remember { mutableStateOf(false) }
     var inputHeight by remember { mutableStateOf(0f) }
     var showProductsExists by remember { mutableStateOf(false) }
+
 
     var fabrication by remember { mutableStateOf("") }
     var validity by remember { mutableStateOf("") }
@@ -581,8 +585,6 @@ fun ResgistrationProducts(
                                                         uid = Random.nextInt(0, 100),
                                                         name = description,
                                                         sector = category!!,
-                                                        fabrication = fabrication.ifEmpty { null },
-                                                        validity = expirationDate.ifEmpty { null },
                                                         skuCode = skuCode,
                                                         price = price.toFloatOrNull() ?: 0f,
                                                         promotionalPrice = promotionalPrice.toFloatOrNull(),
@@ -620,13 +622,13 @@ fun ResgistrationProducts(
                                                     cost = ""
                                                     tags = ""
                                                     selectedSupplier = null
-                                                    fabrication = ""
                                                     expirationDate = ""
                                                     showSuccessDialog = true
 
                                                 }
                                             } catch (e: Exception) {
                                                 Log.e("ResgistrationProducts", "Erro ao cadastrar produto: ${e.message}")
+                                                notProductSucess = true
                                             }
                                         }
                                     }
@@ -662,6 +664,32 @@ fun ResgistrationProducts(
                                     style = MaterialTheme.typography.labelLarge
                                 )
                             }
+
+                            Button(
+                                onClick = {try{
+                                    AppDatabase.resetDatabase(context,scope)
+                                    showDeleteDatabase = true
+                                }
+                                catch(e: Exception){
+                                    Log.e("RegistrationProducts", "Falha ao apagar ${e.message}")
+                                    notShowDeleteDatabase = true
+
+                                }},
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                shape = MaterialTheme.shapes.medium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                Text(
+                                    text = "Resetar banco de dados",
+                                    modifier = Modifier.padding(10.dp),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            }
                         }
                     }
 
@@ -692,6 +720,58 @@ fun ResgistrationProducts(
                                 TextButton(
                                     onClick = {
                                         showProductsExists = false
+
+                                    }
+                                ) {
+                                    Text("OK")
+                                }
+                            }
+                        )
+                    }
+                    if (showDeleteDatabase) {
+                        AlertDialog(
+                            onDismissRequest = { showDeleteDatabase = false },
+                            title = { Text("Base de dados apagado com sucesso") },
+                            text = { Text("") },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        showProductsExists = false
+
+                                    }
+                                ) {
+                                    Text("OK")
+                                }
+                            }
+                        )
+                    }
+
+                    if (notShowDeleteDatabase) {
+                        AlertDialog(
+                            onDismissRequest = { notShowDeleteDatabase = false },
+                            title = { Text("Falha ao apagar o banco de dados") },
+                            text = { Text("") },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        notShowDeleteDatabase = false
+
+                                    }
+                                ) {
+                                    Text("OK")
+                                }
+                            }
+                        )
+                    }
+                    if (notProductSucess) {
+                        AlertDialog(
+                            onDismissRequest = { notProductSucess = false },
+                            title = { Text("Falha ao cadastrar o produto") },
+                            text = { Text("") },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        notProductSucess = false
 
                                     }
                                 ) {

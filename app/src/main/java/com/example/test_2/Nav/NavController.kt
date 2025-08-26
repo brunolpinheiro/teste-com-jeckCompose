@@ -24,11 +24,14 @@ import com.example.test_2.screens.roomBackup.DataBaseExport
 import com.example.test_2.screens.invetory.ShowProducts
 import com.example.test_2.screens.invetory.Printers
 import com.example.test_2.screens.invetory.Report
-import com.example.test_2.screens.invetory.Validity
 import com.example.test_2.screens.home.DashboardScreen
 import com.example.test_2.screens.inventory.ShowSupplier
+import com.example.test_2.screens.register.RegistrationValidity
 import kotlinx.coroutines.launch
 import com.example.test_2.screens.resgister.SupplierRegistration
+import com.example.test_2.data_db.products.ProductViewModel
+import com.example.test_2.data_db.validity.ValidityViewModel
+import com.example.test_2.screens.ValidityOfProducts
 
 
 @Composable
@@ -104,15 +107,7 @@ fun MainApp() {
                             openDrawer = { scope.launch { drawerState.open() } },
                         )
                     }
-                    composable("Validity") {
-                        Validity(
-                            navController = navController,
-                            produtos = emptyList(),
-                            onVoltar = { },
-                            onGerarRelatorio = { },
-                            openDrawer = { scope.launch { drawerState.open() } },
-                        )
-                    }
+
                     composable("RegistrationProducts") {
                         ResgistrationProducts(navController = navController,
                             openDrawer = {scope.launch { drawerState.open() }})
@@ -155,6 +150,17 @@ fun MainApp() {
                     composable("ShowSupplier"){
                         ShowSupplier(openDrawer = {scope.launch { drawerState.open() }}, navController = navController)
 
+                    }
+                    composable("ResgistrationValidity"){
+                        RegistrationValidity(
+                            navController = navController,
+                            openDrawer = {scope.launch { drawerState.open() }},
+                            onBack = {scope.launch { drawerState.close() }}
+
+                        )
+                    }
+                    composable("ValidityOfProducts"){
+                        ValidityOfProducts(navController =navController)
                     }
                 }
             }

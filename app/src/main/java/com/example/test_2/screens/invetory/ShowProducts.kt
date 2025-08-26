@@ -225,8 +225,7 @@ fun ShowProducts(
                                                 productToEdit = product
                                                 editProductName = product.name
                                                 editProductSector = product.sector ?: ""
-                                                editProductFabrication = product.fabrication ?: ""
-                                                editProductValidity = product.validity ?: ""
+
                                                 showEditDialog = true
                                             },
                                             colors = ButtonDefaults.buttonColors(
@@ -374,8 +373,6 @@ fun ShowProducts(
                                                     uid = productToEdit!!.uid,
                                                     name = editProductName,
                                                     sector = editProductSector,
-                                                    fabrication = editProductFabrication.ifEmpty { null },
-                                                    validity = editProductValidity.ifEmpty { null },
                                                     skuCode = "",
                                                     price = 0f,
                                                     promotionalPrice = null,
