@@ -159,7 +159,8 @@ fun DashboardScreenum(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
-                    .padding(vertical = 4.dp, horizontal = 12.dp),
+                    .padding(vertical = 4.dp, horizontal = 12.dp)
+                    .padding(6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("Produto", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
@@ -171,6 +172,7 @@ fun DashboardScreenum(
             // Lista de produtos
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
+
             ) {
                 items(produtosFiltrados) { produto ->
                     val isExpanded = expandedItem == produto.name
@@ -203,21 +205,21 @@ fun ProdutoItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
-            .background(Color.White, shape = RoundedCornerShape(8.dp))
+            .background(Color.White, shape = RoundedCornerShape(4.dp))
             .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(8.dp),
+                elevation = 2.dp,
+                shape = RoundedCornerShape(6.dp),
                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), // sombra azul
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
             )
             .clickable { onClick() }
-            .padding(6.dp)
+            .padding(4.dp)
 
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(10.dp)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -273,6 +275,7 @@ fun ProdutoItem(
             }
         }
     }
+    Divider(color = Color.Gray, modifier = Modifier.fillMaxHeight().width(1.dp))
 }
 
 @Composable

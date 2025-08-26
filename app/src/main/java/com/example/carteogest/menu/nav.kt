@@ -13,13 +13,11 @@ import com.example.carteogest.bluetooth.model.BluetoothViewModel
 import com.example.carteogest.bluetooth.utils.BluetoothViewModelFactory
 import com.example.carteogest.login.AuthState
 import com.example.carteogest.ui.telas.login.LoginScreen
-import com.example.carteogest.ui.telas.login.SplashScreen
 import com.example.carteogest.ui.telas.ControleEstoque.RecebimentoScreen
 import com.example.carteogest.ui.telas.config.ConectPrinters
 import com.example.carteogest.ui.telas.ControleEstoque.StockAdjustmentScreen
 import com.example.carteogest.ui.telas.ControleEstoque.Printers
 import com.example.carteogest.ui.telas.ControleEstoque.RelatoriosEstoqueScreen
-import com.example.carteogest.ui.telas.ControleEstoque.ValidadesScreen
 import com.example.carteogest.ui.telas.inicio.DashboardScreen
 import com.example.carteogest.ui.telas.ControleEstoque.DashboardScreenum
 import com.example.carteogest.ui.telas.inicio.Fornecedores
@@ -174,15 +172,7 @@ fun MainApp() {
                                 )
 
                             }
-                            composable("ValidadesScreen") {
-                                ValidadesScreen(
-                                    navController = navController,
-                                    produtos = emptyList(),
-                                    onVoltar = { },
-                                    onGerarRelatorio = { },
-                                    openDrawer = { scope.launch { drawerState.open() } },
-                                )
-                            }
+
                             composable(
                                 "ProdutoCadastroScreen/{produtoId}",
                                 arguments = listOf(navArgument("produtoId") { type = NavType.IntType })
@@ -225,24 +215,18 @@ fun MainApp() {
                                     openDrawer = { scope.launch { drawerState.open() } }
                                 )
                             }
-                            composable("UserListScreen") {
-                                UserListScreen(
-                                    viewModel = userViewModel,
-                                    onDestinationClicked = { route ->
-                                        scope.launch { drawerState.close() }
-                                        navController.navigate(route)
-                                    },
-                                    openDrawer = { scope.launch { drawerState.open() } }
 
-                                )
 
-                            }
-
-                            composable("UserRegistrationScreen") {
+                            composable(
+                                "UserRegistrationScreen/{usuarioId}",
+                                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+                            ) { backStackEntry ->
+                                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: -1
                                 UserRegistrationScreen(
                                     viewModel = userViewModel,
-                                    openDrawer = { scope.launch { drawerState.open() } }
-
+                                    openDrawer = { scope.launch { drawerState.open() } },
+                                    usuarioId = usuarioId,
+                                    navController = navController
 
                                 )
                             }
@@ -256,6 +240,16 @@ fun MainApp() {
                             composable("DatabaseImport"){
                                 DataBaseImport (
                                     openDrawer = {scope.launch { drawerState.open() }}
+                                )
+                            }
+                            composable("UserListScreen"){
+                                UserListScreen (
+                                    viewModel = userViewModel,
+                                    onDestinationClicked = {},
+                                    openDrawer = { scope.launch { drawerState.open() } },
+                                    navController = navController
+
+
                                 )
                             }
 

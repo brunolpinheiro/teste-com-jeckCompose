@@ -43,13 +43,11 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.navigation.NavController
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import com.example.carteogest.datadb.data_db.AppDatabase
 import com.example.carteogest.datadb.data_db.supplier.SupplierViewModel
 import com.example.carteogest.factory.supplierViewModelFactory
 
-
-data class fornecedores(
-    val nome: String)
 
 @Composable
 fun Fornecedores(
@@ -134,6 +132,7 @@ fun Fornecedores(
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .background(Color.White, shape = RoundedCornerShape(8.dp))
             .padding(paddingValues))
         {
 
@@ -149,6 +148,20 @@ fun Fornecedores(
                 },
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            // Cabeçalho
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
+                    .padding(vertical = 6.dp, horizontal = 12.dp)
+                    .padding(6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Fornecedor", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+                Text("CNPJ", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+            }
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize() .padding(vertical = 2.dp)
 
@@ -162,7 +175,7 @@ fun Fornecedores(
                             .padding(vertical = 4.dp)
                             .background(Color.White, shape = RoundedCornerShape(8.dp))
                             .shadow(
-                                elevation = 4.dp,
+                                elevation = 2.dp,
                                 shape = RoundedCornerShape(8.dp),
                                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), // sombra azul
                                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
@@ -175,6 +188,8 @@ fun Fornecedores(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
+                                .background(Color.White, shape = RoundedCornerShape(8.dp))
+                                .padding(10.dp)
                         ) {
                             Text(fornecedores.name, style = MaterialTheme.typography.titleMedium)
                             Divider(color = Color.Gray, modifier = Modifier.fillMaxHeight().width(1.dp))

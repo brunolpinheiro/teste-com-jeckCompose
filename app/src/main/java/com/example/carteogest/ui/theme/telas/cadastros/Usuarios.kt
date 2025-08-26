@@ -1,31 +1,57 @@
 package com.example.carteogest.ui.telas.cadastro
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.carteogest.login.UserViewModel
 import com.example.carteogest.login.permissoes.Permissao
 import com.example.carteogest.login.User
 import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 
 @Composable
 fun UserRegistrationScreen(
     viewModel: UserViewModel,
-    openDrawer: () -> Unit
+    openDrawer: () -> Unit,
+    usuarioId: Int,
+    navController: NavController
 ) {
     var nome by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
     var permissao by remember { mutableStateOf("") }
     var status by remember { mutableStateOf(false) }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
+
     val scope = rememberCoroutineScope()
+
+    var showExistUser by remember { mutableStateOf(false) }
+    var showSucessResgistration by remember { mutableStateOf(false) }
+
+    // Carregar fornecedor se for edição
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != -1) {
+            val usuarioEncontrado = viewModel.getById(usuarioId)
+            if (usuarioEncontrado != null) {
+                nome = usuarioEncontrado.nome.orEmpty()
+                senha = usuarioEncontrado.senha.orEmpty()
+
+            } else {
+                Log.w("FornecedorCadastroScreen", "usuario não encontrado, iniciando cadastro")
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopBarWithLogo(
@@ -67,16 +93,68 @@ fun UserRegistrationScreen(
 
             // Dropdown de papéis
 
-            Button(
-                onClick = {
-                    val user = User(nome = nome, senha = senha.reversed(), ativo = true)
-                    viewModel.addUser(user)
-                    val permissao = Permissao(permissao = permissao)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
 
-                },
                 modifier = Modifier.fillMaxWidth()
+
             ) {
-                Text("Cadastrar")
+                Button(
+                    onClick = {
+                        if (nome.isNotBlank() && senha.isNotBlank()) {
+                            scope.launch {
+                                if (usuarioId == -1) {
+                                    // Novo fornecedor
+                                    val existUser = viewModel.findByName(nome)
+                                    if (existUser) {
+                                        showExistUser = true
+                                    } else {
+                                        val uid = Random.nextInt(0, 1000)
+                                        viewModel.addUser(
+                                            User(
+                                                uid = uid,
+                                                nome = nome,
+                                                senha = senha,
+                                            )
+                                        )
+                                        showSucessResgistration = true
+                                    }
+                                } else {
+                                    // Atualizar fornecedor existente
+                                    viewModel.updateUser(
+                                        User(
+                                            uid = usuarioId,
+                                            nome = nome,
+                                            senha = senha,
+                                        )
+                                    )
+                                    showSucessResgistration = true
+                                }
+
+                            }
+                        }
+                    },
+
+                    ) {
+                    Text("Salvar", fontSize = 18.sp)
+                }
+                if (usuarioId != -1) {
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                // Cria um objeto Supplier com os dados atuais do formulário
+                                val usuarioparaExcluir = usuarioId
+                                viewModel.deleteUser(
+                                    usuarioparaExcluir
+                                )
+                                navController.popBackStack()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    ) {
+                        Text("Excluir", color = Color.White)
+                    }
+                }
             }
         }
     }

@@ -244,16 +244,16 @@ fun AppDrawer(
                         drawerItem(
 
                             labelText = "Fornecedores",
-                            selected = currentRoute == "SupplierRegistrationScreen",
-                            onClick = { onDestinationClicked("SupplierRegistrationScreen") },
+                            selected = currentRoute == "SupplierRegistration/-1",
+                            onClick = { onDestinationClicked("SupplierRegistration/-1") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                         Divider(color = Color.White.copy(alpha = 0.3f))
                         drawerItem(
 
                             labelText = "Usuarios",
-                            selected = currentRoute == "UserRegistrationScreen",
-                            onClick = { onDestinationClicked("UserRegistrationScreen") },
+                            selected = currentRoute == "UserRegistrationScreen/-1",
+                            onClick = { onDestinationClicked("UserRegistrationScreen/-1") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                     }

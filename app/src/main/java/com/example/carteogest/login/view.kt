@@ -1,6 +1,7 @@
 // UserViewModel.kt
 package com.example.carteogest.login
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +47,7 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
     }
     fun deleteUser(userId: Int) {
         viewModelScope.launch {
-            val userToDelete = _users.value.find { it.id == userId }
+            val userToDelete = _users.value.find { it.uid == userId }
             userToDelete?.let {
                 repo.deleteUser(it)
                 loadUsers()
@@ -79,5 +80,20 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
         viewModelScope.launch {
             repo.clearLoggedUser()
         }
+    }
+
+    suspend  fun findByName(nome: String): Boolean {
+        return try {
+            val exists = repo.findByName(nome)
+            Log.d("SupplierModelView", "Verificação do nome do fornecedor  '$nome': $exists")
+            exists
+
+        } catch (e: Exception) {
+            Log.e("SupplierModelView", "Não foi possível verificar o nome do produto: ${e.message}")
+            false
+        }
+    }
+    suspend fun getById(id: Int): User? {
+        return repo.getById(id)
     }
 }

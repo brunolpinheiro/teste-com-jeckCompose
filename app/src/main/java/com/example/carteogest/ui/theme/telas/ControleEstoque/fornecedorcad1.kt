@@ -124,8 +124,8 @@ fun SupplierRegistration(
                 )
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
+
                     modifier = Modifier.fillMaxWidth()
 
                 ) {

@@ -32,6 +32,6 @@ interface SupplierDao {
     @Delete
     suspend fun deleteSupplier(supplier: Supplier)
 
-    @Query("SELECT * FROM Supplier WHERE uid = :id LIMIT 1")
-    suspend fun getById(id: Int): Supplier
+    @Query("SELECT * FROM Supplier WHERE uid = :uid LIMIT 1")
+    suspend fun getById(uid: Int): Supplier
 }
