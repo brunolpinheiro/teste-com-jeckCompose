@@ -109,7 +109,6 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS ValidityAndFabrication (
                         uid INTEGER PRIMARY KEY NOT NULL,
-                        nameOfProduct TEXT NOT NULL,
                         fabrication TEXT NOT NULL,
                         validity TEXT NOT NULL
                     )

@@ -22,8 +22,7 @@ interface  ValidityDao{
     @Query("SELECT * FROM validity")
     fun getAll(): Flow<List<ValidityAndFabrication>>
 
-    @Query("SELECT * FROM validity WHERE nameOfProduct = :nameProduct")
-    fun getByProductName(nameProduct: String): Boolean
+
 
     @Update
     suspend fun updateValidity(validity: ValidityAndFabrication)

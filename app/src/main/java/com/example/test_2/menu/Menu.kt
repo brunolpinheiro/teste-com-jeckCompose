@@ -233,8 +233,8 @@ fun AppDrawer(
                         drawerItem(
 
                             labelText = "Produtos",
-                            selected = currentRoute == "RegistrationProducts",
-                            onClick = { onDestinationClicked("RegistrationProducts") },
+                            selected = currentRoute == "RegistrationProduct",
+                            onClick = { onDestinationClicked("RegistrationProduct") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                         Divider(color = Color.White.copy(alpha = 0.3f))

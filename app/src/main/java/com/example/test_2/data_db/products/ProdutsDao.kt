@@ -17,6 +17,10 @@ interface ProdutsDao {
 
     @Query("SELECT * FROM products")
     fun getAll(): Flow<List<Products>>
+
+    @Query("SELECT * FROM Products WHERE sector = :uid LIMIT 1")
+    fun getById(uid: Int): Products
+
     @Query("SELECT * FROM Products WHERE sector = :sector")
     fun getProductsBySector(sector: String): Flow<List<Products>>
 

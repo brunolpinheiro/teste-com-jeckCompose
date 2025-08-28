@@ -46,7 +46,7 @@ fun DataBaseImport(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val database = remember { AppDatabase.getDatabase(context, scope) }
-    val viewModel = remember { database?.let { ProductViewModel(it) } }
+    val viewModel = remember { database?.let { ProductViewModel(it.productsDao()) } }
     var loading by remember { mutableStateOf(false) }
     val backup = LocalRoomBackup.current
     var successImport by remember { mutableStateOf(false) }

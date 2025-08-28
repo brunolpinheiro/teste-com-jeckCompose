@@ -45,8 +45,7 @@ class ValidityViewModel(private val database: AppDatabase) : ViewModel() {
 
                     database.validityDao().addValidityToProduct(
                         ValidityAndFabrication(
-                            uid = 0,
-                            nameOfProduct = productName,
+                            productId = 0,
                             fabrication = newDateFabrication,
                             validity = newDateValidity
                         )
@@ -59,12 +58,11 @@ class ValidityViewModel(private val database: AppDatabase) : ViewModel() {
         }
     }
 
-    fun updateValidity(productName: String, newDateFabrication: String,newDateValidity: String) {
+    fun updateValidity( newDateFabrication: String,newDateValidity: String) {
         viewModelScope.launch {
             try {
                 database.validityDao().updateValidity(ValidityAndFabrication(
-                    uid = 0,
-                    nameOfProduct = productName,
+                    productId = 0,
                     fabrication = newDateFabrication,
                     validity = newDateValidity
                 ))

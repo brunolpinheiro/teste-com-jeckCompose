@@ -37,7 +37,7 @@ fun RegistrationValidity(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val database = remember { AppDatabase.getDatabase(context, scope) }
-    val viewModel = remember { database?.let { ProductViewModel(it) } }
+    val viewModel = remember { database?.let { ProductViewModel(it.productsDao()) } }
     val viewModelValidity = remember { database?.let { ValidityViewModel(it) } }
     var showValiditySuccess by remember { mutableStateOf(false) }
     var notValiditySuccess by remember { mutableStateOf(false) }

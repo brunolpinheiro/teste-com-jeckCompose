@@ -10,8 +10,7 @@ import java.time.LocalDate
 
 @Entity(tableName = "validity")
 data class ValidityAndFabrication(
-    @PrimaryKey (autoGenerate = true) val uid:Int = 0,
-    @ColumnInfo(name = "nameOfProduct") val nameOfProduct:String,
-    @ColumnInfo(name = "fabrication") val fabrication: String ,
-    @ColumnInfo(name = "validity") val validity:String
+    @PrimaryKey (autoGenerate = true) val productId:Int = 0,
+    @ColumnInfo(name = "fabrication") val fabrication: String?,
+    @ColumnInfo(name = "validity") val validity:String?
 )

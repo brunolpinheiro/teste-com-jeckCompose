@@ -4,8 +4,8 @@ import android.app.DatePickerDialog
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn  // Adicionado para animação suave
-import androidx.compose.animation.fadeOut  // Adicionado para animação suave
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,7 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check  // Adicionado para ícone no botão
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,8 +40,10 @@ import java.util.Calendar
 // ==== MODELO DE DADOS ====
 data class ValidityGroup(
     val productName: String,
+    val productId: Int,
     val expirationDates: List<LocalDate>,
-    val fabricationDates: List<LocalDate>
+    val fabricationDates: List<LocalDate>,
+    val validities: List<ValidityAndFabrication>
 )
 
 @Composable
@@ -52,16 +54,20 @@ fun ValidityOfProducts(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val database = remember { AppDatabase.getDatabase(context, scope) }
-    val productViewModel = remember { database?.let { ProductViewModel(it) } }
+    val productViewModel = remember { database?.let { ProductViewModel(it.productsDao()) } }
     val validityViewModel = remember { database?.let { ValidityViewModel(it) } }
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val validities by validityViewModel?.validity ?: remember { mutableStateOf(emptyList<ValidityAndFabrication>()) }
-    var newDateFabrication by remember { mutableStateOf<LocalDate?>(null) }
-    var newDateValidity by remember { mutableStateOf<LocalDate?>(null) }
+    val products by productViewModel?.products ?: remember { mutableStateOf(emptyList()) }
 
     LaunchedEffect(Unit) {
-        validityViewModel?.loadValidity()
-        Log.d("ValidityOfProducts", "Carregando validades. Tamanho da lista: ${validities.size}")
+        try{
+            productViewModel?.getAll()
+            validityViewModel?.loadValidity()
+            Log.d("ValidityOfProducts", "Carregando validades. Tamanho da lista: ${validities.size}")
+        }catch(e: Exception){
+            Log.e("ValidityOfProducts", "falha ao carregar os produtos")
+        }
     }
 
     fun parseDateString(dateString: String): LocalDate? {
@@ -73,9 +79,13 @@ fun ValidityOfProducts(
         }
     }
 
-    // Agrupar validades por produto
-    val groupedValidities = validities.groupBy { it.nameOfProduct }
-    val validityGroups = groupedValidities.map { (productName, items) ->
+    // Agrupar validades por productId
+    val groupedValidities = validities.groupBy { it.productId }
+
+    // Criar grupos para TODOS os produtos, mesmo sem validades
+    val validityGroups = products.map { product ->
+        val productId = product.uid
+        val items = groupedValidities[productId] ?: emptyList()
         val datesValidity = items.mapNotNull { item ->
             item.validity?.let { parseDateString(it) }
         }.sorted()
@@ -83,11 +93,17 @@ fun ValidityOfProducts(
             item.fabrication?.let { parseDateString(it) }
         }.sorted()
 
-        ValidityGroup(productName, datesValidity, datesFabrication)
+        ValidityGroup(
+            productName = product.name,
+            productId = productId,
+            expirationDates = datesValidity,
+            fabricationDates = datesFabrication,
+            validities = items
+        )
     }
 
-    // Ordena produtos pelo vencimento mais próximo
-    val sortedValidityGroups = validityGroups.sortedBy { it.expirationDates.minOrNull() }
+    // Ordena produtos pelo vencimento mais próximo; produtos sem datas vão para o final
+    val sortedValidityGroups = validityGroups.sortedBy { it.expirationDates.minOrNull() ?: LocalDate.MAX }
 
     Scaffold(
         topBar = {
@@ -105,9 +121,9 @@ fun ValidityOfProducts(
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (validities.isEmpty()) {
+            if (products.isEmpty()) {
                 Text(
-                    text = "Nenhuma validade cadastrada",
+                    text = "Nenhum produto cadastrado",
                     color = Color.Gray,
                     fontSize = 14.sp,
                     modifier = Modifier
@@ -129,11 +145,13 @@ fun ValidityOfProducts(
                     items(sortedValidityGroups) { group ->
                         ProductItem(
                             productName = group.productName,
+                            productId = group.productId,
                             expirationDates = group.expirationDates,
-                            fabrication = group.fabricationDates,
-                            dateFormatter = dateFormatter
+                            fabricationDates = group.fabricationDates,
+                            validities = group.validities,
+                            dateFormatter = dateFormatter,
+                            validityViewModel = validityViewModel
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -202,24 +220,31 @@ fun ValidityOfProducts(
     }
 }
 
-// ==== ITEM DO PRODUTO ====
 @Composable
 fun ProductItem(
     productName: String,
+    productId: Int,
     expirationDates: List<LocalDate>,
-    fabrication: List<LocalDate>,
-    dateFormatter: DateTimeFormatter
+    fabricationDates: List<LocalDate>,
+    validities: List<ValidityAndFabrication>,
+    dateFormatter: DateTimeFormatter,
+    validityViewModel: ValidityViewModel?
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val database = remember { AppDatabase.getDatabase(context, scope) }
-    val productViewModel = remember { database?.let { ProductViewModel(it) } }
-    val validityViewModel = remember { database?.let { ValidityViewModel(it) } }
-    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val validities by validityViewModel?.validity ?: remember { mutableStateOf(emptyList<ValidityAndFabrication>()) }
+    var editingValidityId by remember { mutableStateOf<Int?>(null) }
     var newDateFabrication by remember { mutableStateOf<LocalDate?>(null) }
     var newDateValidity by remember { mutableStateOf<LocalDate?>(null) }
+
+    fun parseDateString(dateString: String): LocalDate? {
+        return try {
+            LocalDate.parse(dateString, dateFormatter)
+        } catch (e: Exception) {
+            Log.e("DateConversion", "Erro ao converter string para LocalDate: ${e.message}")
+            null
+        }
+    }
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -237,19 +262,25 @@ fun ProductItem(
             )
 
             val nearestExpiration = expirationDates.minOrNull()
-            nearestExpiration?.let {
-                val colorProxima = if (it.isAfter(LocalDate.now())) Color.Green else Color.Red
+            if (nearestExpiration != null) {
+                val colorProxima = if (nearestExpiration.isAfter(LocalDate.now())) Color.Green else Color.Red
                 Text(
-                    text = "Próx. vencimento: ${it.format(dateFormatter)}",
+                    text = "Próx. vencimento: ${nearestExpiration.format(dateFormatter)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colorProxima
+                )
+            } else {
+                Text(
+                    text = "Sem vencimentos cadastrados",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
                 )
             }
 
             AnimatedVisibility(
                 visible = expanded,
-                enter = expandVertically(),
-                exit = shrinkVertically()
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
             ) {
                 Column(
                     modifier = Modifier
@@ -257,7 +288,7 @@ fun ProductItem(
                         .padding(top = 12.dp)
                         .background(Color.White, shape = RoundedCornerShape(12.dp))
                         .padding(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally  // Centraliza o conteúdo horizontalmente
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Seção para datas de validade
                     Text(
@@ -267,8 +298,7 @@ fun ProductItem(
                         color = Color.Black,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    expirationDates.forEach { expirationDate ->
-                        val colorValidity = if (expirationDate.isAfter(LocalDate.now())) Color.Green else Color.Red
+                    if (validities.isEmpty()) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -277,22 +307,18 @@ fun ProductItem(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = expirationDate.format(dateFormatter),
+                                text = "Nenhuma data cadastrada",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = colorValidity
+                                color = Color.Gray
                             )
                             IconButton(
                                 onClick = {
-                                    Log.d("RegistrationValidity", "Clicou no campo de validade")
+                                    editingValidityId = productId
                                     val calendar = Calendar.getInstance()
                                     DatePickerDialog(
                                         context,
                                         { _, year, month, day ->
                                             newDateValidity = LocalDate.of(year, month + 1, day)
-                                            Log.d(
-                                                "RegistrationValidity",
-                                                "Data de validade selecionada: $newDateValidity"
-                                            )
                                         },
                                         calendar.get(Calendar.YEAR),
                                         calendar.get(Calendar.MONTH),
@@ -302,9 +328,52 @@ fun ProductItem(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Edit,
-                                    contentDescription = "Editar data de validade",
+                                    contentDescription = "Adicionar data de validade",
                                     tint = Color.Gray
                                 )
+                            }
+                        }
+                    } else {
+                        validities.forEach { validity ->
+                            val expirationDate = validity.validity?.let { parseDateString(it) }
+                            val colorValidity = if (expirationDate != null) {
+                                if (expirationDate.isAfter(LocalDate.now())) Color.Green else Color.Red
+                            } else {
+                                Color.Gray
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = expirationDate?.format(dateFormatter) ?: "Nenhuma data cadastrada",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colorValidity
+                                )
+                                IconButton(
+                                    onClick = {
+                                        editingValidityId = productId
+                                        val calendar = Calendar.getInstance()
+                                        DatePickerDialog(
+                                            context,
+                                            { _, year, month, day ->
+                                                newDateValidity = LocalDate.of(year, month + 1, day)
+                                            },
+                                            calendar.get(Calendar.YEAR),
+                                            calendar.get(Calendar.MONTH),
+                                            calendar.get(Calendar.DAY_OF_MONTH)
+                                        ).show()
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Editar data de validade",
+                                        tint = Color.Gray
+                                    )
+                                }
                             }
                         }
                     }
@@ -318,7 +387,7 @@ fun ProductItem(
                         color = Color.Black,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    fabrication.forEach { fabricationDate ->
+                    if (validities.isEmpty()) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -327,22 +396,18 @@ fun ProductItem(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = fabricationDate.format(dateFormatter),
+                                text = "Nenhuma data cadastrada",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Blue
+                                color = Color.Gray
                             )
                             IconButton(
                                 onClick = {
-                                    Log.d("RegistrationValidity", "Clicou no campo de validade")
+                                    editingValidityId = productId
                                     val calendar = Calendar.getInstance()
                                     DatePickerDialog(
                                         context,
                                         { _, year, month, day ->
                                             newDateFabrication = LocalDate.of(year, month + 1, day)
-                                            Log.d(
-                                                "RegistrationValidity",
-                                                "Data de fabricacao  selecionada: $newDateFabrication"
-                                            )
                                         },
                                         calendar.get(Calendar.YEAR),
                                         calendar.get(Calendar.MONTH),
@@ -352,46 +417,82 @@ fun ProductItem(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Edit,
-                                    contentDescription = "Editar data de fabricação",
+                                    contentDescription = "Adicionar data de fabricação",
                                     tint = Color.Gray
                                 )
                             }
                         }
+                    } else {
+                        validities.forEach { validity ->
+                            val fabricationDate = validity.fabrication?.let { parseDateString(it) }
+                            val colorFabrication = if (fabricationDate != null) Color.Blue else Color.Gray
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = fabricationDate?.format(dateFormatter) ?: "Nenhuma data cadastrada",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colorFabrication
+                                )
+                                IconButton(
+                                    onClick = {
+                                        editingValidityId = productId
+                                        val calendar = Calendar.getInstance()
+                                        DatePickerDialog(
+                                            context,
+                                            { _, year, month, day ->
+                                                newDateFabrication = LocalDate.of(year, month + 1, day)
+                                            },
+                                            calendar.get(Calendar.YEAR),
+                                            calendar.get(Calendar.MONTH),
+                                            calendar.get(Calendar.DAY_OF_MONTH)
+                                        ).show()
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Editar data de fabricação",
+                                        tint = Color.Gray
+                                    )
+                                }
+                            }
+                        }
                     }
 
-                    // Animação para o botão aparecer suavemente
-                    Spacer(modifier = Modifier.height(12.dp))  // Espaçamento extra para beleza
+                    // Botão para confirmar alterações
+                    Spacer(modifier = Modifier.height(12.dp))
                     AnimatedVisibility(
-                        visible = newDateFabrication != null && newDateValidity != null,
+                        visible = newDateValidity != null || newDateFabrication != null,
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically()
                     ) {
                         Button(
                             onClick = {
-                                try {
-                                    if (newDateFabrication != null && newDateValidity != null) {
-                                        val dateForStringFabrication = newDateFabrication!!.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                                        val dateForStringValidation = newDateValidity!!.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                                        scope.launch {
-                                            validityViewModel?.addValidityToProduct(
-                                                productName,
-                                                dateForStringFabrication,
-                                                dateForStringValidation
-                                            )
+                                if (editingValidityId != null) {
+                                    scope.launch {
+                                        try {
+                                            validityViewModel?.updateValidity(
 
-                                            newDateFabrication = null
+                                                newDateFabrication?.format(dateFormatter).toString(),
+                                                newDateValidity?.format(dateFormatter).toString()
+                                            )
                                             newDateValidity = null
-                                            Log.d("RegistrationValidity", "Validade adicionada com sucesso")
+                                            newDateFabrication = null
+                                            editingValidityId = null
+                                        } catch (e: Exception) {
+                                            Log.e("ValidityUpdate", "Erro ao atualizar validade: ${e.message}")
                                         }
                                     }
-                                } catch (e: Exception) {
-                                    Log.e("RegistrationValidity", "Falha ao cadastrar a validade: ${e.message}")
                                 }
                             },
-                            shape = RoundedCornerShape(20.dp),  // Forma mais arredondada para visual bonito
+                            shape = RoundedCornerShape(20.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF008C4A)),
                             modifier = Modifier
-                                .fillMaxWidth(0.8f)  // Botão mais largo, mas não full, para centralizar
+                                .fillMaxWidth(0.8f)
                                 .padding(vertical = 8.dp)
                         ) {
                             Icon(
@@ -399,10 +500,11 @@ fun ProductItem(
                                 contentDescription = "Confirmar",
                                 modifier = Modifier.padding(end = 8.dp)
                             )
-                            Text("Adicionar Validade", color = Color.White)
+                            Text("Atualizar Validade", color = Color.White)
                         }
                     }
                 }
             }
         }
-    }}
+    }
+}

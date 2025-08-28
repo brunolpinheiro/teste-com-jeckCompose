@@ -11,14 +11,14 @@ import com.example.test_2.data_db.AppDatabase
 import com.example.test_2.data_db.products.ProdutsDao
 
 
-class ProductViewModel(private val database: AppDatabase) : ViewModel() {
+class ProductViewModel(private val dao: ProdutsDao) : ViewModel() {
     private val _products = mutableStateOf<List<Products>>(emptyList())
     val products: State<List<Products>> get() = _products
 
     fun loadProducts(sector: String) {
         viewModelScope.launch {
             try {
-                database.productsDao().getProductsBySector(sector).collectLatest { products ->
+                dao.getProductsBySector(sector).collectLatest { products ->
                     _products.value = products ?: emptyList()
                 }
             } catch (e: Exception) {
@@ -30,7 +30,7 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
 
     suspend  fun findByName(name: String): Boolean {
         return try {
-            val exists = database.productsDao().findByName(name)
+            val exists = dao.findByName(name)
             Log.d("ProductViewModel", "Verificação de produto com nome '$name': $exists")
             exists
 
@@ -66,7 +66,7 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                database.productsDao().insertProduct(
+                dao.insertProduct(
                     Products(
                         uid = uid,
                         name = name,
@@ -100,7 +100,7 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
     fun updateProduct(product: Products) {
         viewModelScope.launch {
             try {
-                database.productsDao().updateProduct(product)
+                dao.updateProduct(product)
                 loadProducts(product.sector)
             } catch (e: Exception) {
                 Log.e("ProductViewModel", "Erro ao atualizar produto: ${e.message}")
@@ -111,7 +111,7 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
     fun deleteProduct(product: Products) {
         viewModelScope.launch {
             try {
-                database.productsDao().deleteProduct(product)
+                dao.deleteProduct(product)
                 loadProducts(product.sector)
             } catch (e: Exception) {
                 Log.e("ProductViewModel", "Erro ao deletar produto: ${e.message}")
@@ -122,7 +122,7 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
     fun getAll() {
         viewModelScope.launch {
             try {
-                database.productsDao().getAll().collectLatest { products ->
+                dao.getAll().collectLatest { products ->
                     _products.value = products ?: emptyList()
                 }
             } catch (e: Exception) {
@@ -130,6 +130,10 @@ class ProductViewModel(private val database: AppDatabase) : ViewModel() {
                 _products.value = emptyList()
             }
         }
+    }
+
+    suspend fun getById(id: Int): Products? {
+        return dao.getById(id)
     }
 
 }

@@ -4,15 +4,17 @@ package com.example.test_2.Nav
 
 import DataBaseImport
 import LoginScreen
-import ResgistrationProducts
+import RegistrationProducts
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.test_2.bluetooth.model.BluetoothViewModel
 import com.example.test_2.bluetooth.utils.BluetoothViewModelFactory
 import com.example.test_2.screens.login.AuthViewModel
@@ -94,11 +96,7 @@ fun MainApp() {
                         )
                     }
 
-                    composable("ResgistrationProducts") {
-                        ResgistrationProducts(navController = navController,
-                         openDrawer = {scope.launch { drawerState.open()
-                     }})
-                    }
+
                     composable("RelatoriosEstoqueScreen") {
                         Report(
                             onVoltar = { },
@@ -108,12 +106,22 @@ fun MainApp() {
                         )
                     }
 
-                    composable("RegistrationProducts") {
-                        ResgistrationProducts(navController = navController,
-                            openDrawer = {scope.launch { drawerState.open() }})
+                    composable(
+                        route = "RegistrationProduct",
+                        arguments = listOf(
+                            navArgument("productId") {
+                                type = NavType.IntType
+                                defaultValue = -1 // Opcional: define um valor padrão, como -1, para evitar nulos
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val productId = backStackEntry.arguments?.getInt("productId") ?: -1
+                        RegistrationProducts(
+                            productId = productId,
+                            navController = navController,
+                            openDrawer = { scope.launch { drawerState.open() } }
+                        )}
 
-
-                    }
                     composable("ShowProducts") {
                         ShowProducts(navController = navController,
                             openDrawer = {scope.launch { drawerState.open() }})

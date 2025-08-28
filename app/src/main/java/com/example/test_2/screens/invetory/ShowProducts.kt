@@ -61,7 +61,7 @@ fun ShowProducts(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val database = remember { AppDatabase.getDatabase(context, scope) }
-    val viewModel = remember { database?.let { ProductViewModel(it) } }
+    val viewModel = remember { database?.let { ProductViewModel(it.productsDao()) } }
 
     var selectedSector by remember { mutableStateOf("") }
     var showEditDialog by remember { mutableStateOf(false) }
