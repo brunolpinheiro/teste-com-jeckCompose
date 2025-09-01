@@ -38,14 +38,14 @@ class ValidityViewModel(private val database: AppDatabase) : ViewModel() {
 
 
 
-    fun addValidityToProduct(productName: String, newDateFabrication: String,newDateValidity: String) {
+    fun addValidityToProduct(productId: Int, newDateFabrication: String,newDateValidity: String) {
         viewModelScope.launch {
             try {
                 // Assumindo que ValidityDao tem getByProductName(name: String): Flow<ValidityAndFabrication?>
 
                     database.validityDao().addValidityToProduct(
                         ValidityAndFabrication(
-                            productId = 0,
+                            productId = productId,
                             fabrication = newDateFabrication,
                             validity = newDateValidity
                         )

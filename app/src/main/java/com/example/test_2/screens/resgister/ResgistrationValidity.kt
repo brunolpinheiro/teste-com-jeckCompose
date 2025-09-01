@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.random.Random
 
 @Composable
 fun RegistrationValidity(
@@ -229,7 +230,7 @@ fun RegistrationValidity(
                                             val dateForStringValidation = newDateValidity!!.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                                             scope.launch {
                                                 viewModelValidity?.addValidityToProduct(
-                                                    selectedProduct?.name ?: "",
+                                                    Random.nextInt(0,100),
                                                     dateForStringFabrication,
                                                     dateForStringValidation
                                                 )

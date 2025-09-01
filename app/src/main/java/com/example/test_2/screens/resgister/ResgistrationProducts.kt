@@ -30,8 +30,6 @@ import kotlinx.coroutines.Dispatchers
 import android.util.Log
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -43,6 +41,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import kotlin.random.Random
 
@@ -66,7 +65,8 @@ fun dropdownMenuField(
             onValueChange = {},
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth()
+            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            textStyle = TextStyle(color = Color.Black)
         )
         ExposedDropdownMenu(
             expanded = expanded,
@@ -88,18 +88,16 @@ fun dropdownMenuField(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistrationProducts(
-    productId:Int,
+    productId: Int,
     openDrawer: () -> Unit,
     navController: NavController
 ) {
     val context = LocalContext.current
     val database = remember { AppDatabase.getDatabase(context, CoroutineScope(Dispatchers.IO)) }
     val viewModelSupplier = remember { database?.let { SupplierViewModel(it) } }
-    val viewModelProducts = remember{database?.let{ ProductViewModel(it.productsDao()) }}
+    val viewModelProducts = remember { database?.let { ProductViewModel(it.productsDao()) } }
 
-    var showSupplierDropdown by remember { mutableStateOf(false) }
-    val suppliers by viewModelSupplier?.supplier ?: remember { mutableStateOf(emptyList<Supplier>()) } //
-    var inputHeight by remember { mutableStateOf(0f) }
+    val suppliers by viewModelSupplier?.supplier ?: remember { mutableStateOf(emptyList<Supplier>()) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showProductsExists by remember { mutableStateOf(false) }
     var notProductSucess by remember { mutableStateOf(false) }
@@ -132,8 +130,6 @@ fun RegistrationProducts(
     val unidades = listOf("Unidade", "Caixa", "Kg", "Litro", "Metro")
     val opcoes = listOf("Cozinha", "Sushi", "Copa")
 
-
-
     var product by remember {
         mutableStateOf(
             Products(
@@ -156,10 +152,9 @@ fun RegistrationProducts(
                 size = null,
                 cost = null,
                 tags = null,
-                supplier = null,
-
-
-            ))
+                supplier = null
+            )
+        )
     }
 
     val launcher =
@@ -171,27 +166,21 @@ fun RegistrationProducts(
 
     val scope = rememberCoroutineScope()
 
-
     fun validateRequiredFields(): Boolean {
-       return name.isNotBlank() && price!=null && sector!=null && status!=null
-
+        return name.isNotBlank() && price.isNotBlank() && sector != null && status != null
     }
 
-
-
-
-    LaunchedEffect(Unit) {  // Carrega automaticamente ao entrar na tela
+    LaunchedEffect(Unit) {
         viewModelSupplier?.let { vm ->
             scope.launch {
                 try {
-                    vm.getAll()  // Ou o nome da função equivalente no seu ViewModel
+                    vm.getAll()
                 } catch (e: Exception) {
-                    Log.e("ResgistrationProducts", "Erro ao carregar fornecedores: ${e.message}")
+                    Log.e("RegistrationProducts", "Erro ao carregar fornecedores: ${e.message}")
                 }
             }
         }
     }
-
 
     LaunchedEffect(productId) {
         if (productId != -1) {
@@ -199,21 +188,16 @@ fun RegistrationProducts(
             if (searchOfProducts != null) {
                 product = searchOfProducts
             } else {
-                // continua com o produto vazio, pronto para cadastro
-                Log.w("ProdutoCadastroScreen", "Produto não encontrado, iniciando cadastro")
+                Log.w("RegistrationProducts", "Produto não encontrado, iniciando cadastro")
             }
         }
     }
-
-
 
     Scaffold(
         topBar = {
             TopBarWithLogo(
                 userName = "Natanael Almeida",
-                onMenuClick = {
-                    scope.launch {  }
-                },
+                onMenuClick = { openDrawer() },
                 openDrawer = openDrawer
             )
         }
@@ -245,8 +229,7 @@ fun RegistrationProducts(
                     items(imagens) { uri ->
                         Image(
                             painter = rememberAsyncImagePainter(
-                                ImageRequest.Builder(context).data(uri).size(Size.ORIGINAL)
-                                    .build()
+                                ImageRequest.Builder(context).data(uri).size(Size.ORIGINAL).build()
                             ),
                             contentDescription = null,
                             modifier = Modifier
@@ -270,7 +253,8 @@ fun RegistrationProducts(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Nome do Produto*") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -279,7 +263,8 @@ fun RegistrationProducts(
                     value = skuCode,
                     onValueChange = { skuCode = it },
                     label = { Text("Código/SKU") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -298,7 +283,8 @@ fun RegistrationProducts(
                     onValueChange = { price = it },
                     label = { Text("Preço*") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -308,7 +294,8 @@ fun RegistrationProducts(
                     onValueChange = { promotionalPrice = it },
                     label = { Text("Preço Promocional (Opcional)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -318,7 +305,8 @@ fun RegistrationProducts(
                     onValueChange = { quantity = it },
                     label = { Text("Estoque / Quantidade") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -336,7 +324,8 @@ fun RegistrationProducts(
                     value = brand,
                     onValueChange = { brand = it },
                     label = { Text("Marca / Fabricante") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -354,7 +343,8 @@ fun RegistrationProducts(
                     value = barcode,
                     onValueChange = { barcode = it },
                     label = { Text("Código de Barras") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -364,7 +354,8 @@ fun RegistrationProducts(
                     onValueChange = { cost = it },
                     label = { Text("Custo") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -374,7 +365,8 @@ fun RegistrationProducts(
                     onValueChange = { height = it },
                     label = { Text("Altura (opcional)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -384,7 +376,8 @@ fun RegistrationProducts(
                     onValueChange = { width = it },
                     label = { Text("Largura (opcional)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -394,7 +387,8 @@ fun RegistrationProducts(
                     onValueChange = { length = it },
                     label = { Text("Comprimento (opcional)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -404,7 +398,8 @@ fun RegistrationProducts(
                     onValueChange = { weight = it },
                     label = { Text("Peso (opcional)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -413,7 +408,8 @@ fun RegistrationProducts(
                     value = color,
                     onValueChange = { color = it },
                     label = { Text("Cor (opcional)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -422,7 +418,8 @@ fun RegistrationProducts(
                     value = size,
                     onValueChange = { size = it },
                     label = { Text("Tamanho (opcional)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -431,63 +428,20 @@ fun RegistrationProducts(
                     value = tags,
                     onValueChange = { tags = it },
                     label = { Text("Tags (opcional)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
 
                 Text("Número de fornecedores: ${suppliers.size}")
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showSupplierDropdown = true }
-                ) {
-                    OutlinedTextField(
-                        value = selectedSupplier ?: "",
-                        onValueChange = {},
-                        label = { Text("Fornecedor (opcional)") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 300.dp)
-                            .onGloballyPositioned { coordinates ->
-                                inputHeight = coordinates.size.height.toFloat()
-                            },
-                        readOnly = true,
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Selecionar fornecedor",
-                                modifier = Modifier.clickable { showSupplierDropdown = true }
-                            )
-                        }
-                    )
-                    DropdownMenu(
-                        expanded = showSupplierDropdown,
-                        onDismissRequest = { showSupplierDropdown = false },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .offset(y = with(LocalDensity.current) { inputHeight.toDp() })
-                    ) {
-                        if (suppliers.isEmpty()) {
-                            DropdownMenuItem(
-                                text = { Text("Nenhum fornecedor cadastrado") },
-                                onClick = { },
-                                enabled = false
-                            )
-                        } else {
-                            suppliers.forEach { supplier ->
-                                DropdownMenuItem(
-                                    text = { Text(supplier.name) },
-                                    onClick = {
-                                        selectedSupplier = supplier.name
-                                        showSupplierDropdown = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
+                dropdownMenuField(
+                    label = "Fornecedores",
+                    options = suppliers.map { it.name },
+                    selectedOption = selectedSupplier ?: "",
+                    onOptionSelected = { selectedSupplier = it }
+                )
 
                 Spacer(Modifier.height(8.dp))
 
@@ -495,20 +449,21 @@ fun RegistrationProducts(
                     value = fabrication,
                     onValueChange = { fabrication = it },
                     label = { Text("Data de Fabricação (opcional)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(8.dp))
 
                 OutlinedTextField(
                     value = expirationDate,
-                    onValueChange = { expirationDate = it },
+                    onValueChange = { fabrication = it },
                     label = { Text("Data de Validade (opcional)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(color = Color.Black)
                 )
 
                 Spacer(Modifier.height(16.dp))
-
 
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -550,7 +505,7 @@ fun RegistrationProducts(
                                                 size = size.ifEmpty { null },
                                                 cost = cost.toFloatOrNull(),
                                                 tags = tags.ifEmpty { null },
-                                                supplier = selectedSupplier?.ifEmpty { null },
+                                                supplier = selectedSupplier?.ifEmpty { null }
                                             )
                                             name = ""
                                             sector = null
@@ -573,7 +528,6 @@ fun RegistrationProducts(
                                             selectedSupplier = null
                                             expirationDate = ""
                                             showSuccessDialog = true
-
                                         }
                                     } catch (e: Exception) {
                                         Log.e("RegistrationProducts", "Erro ao cadastrar produto: ${e.message}")
@@ -635,10 +589,7 @@ fun RegistrationProducts(
                 text = { Text("Falha ao cadastrar") },
                 confirmButton = {
                     TextButton(
-                        onClick = {
-                            showProductsExists = false
-
-                        }
+                        onClick = { showProductsExists = false }
                     ) {
                         Text("OK")
                     }
@@ -652,9 +603,7 @@ fun RegistrationProducts(
                 text = { Text("") },
                 confirmButton = {
                     TextButton(
-                        onClick = {
-                            showDeleteDatabase = false
-                        }
+                        onClick = { showDeleteDatabase = false }
                     ) {
                         Text("OK")
                     }
@@ -668,9 +617,7 @@ fun RegistrationProducts(
                 text = { Text("") },
                 confirmButton = {
                     TextButton(
-                        onClick = {
-                            notShowDeleteDatabase = false
-                        }
+                        onClick = { notShowDeleteDatabase = false }
                     ) {
                         Text("OK")
                     }
@@ -684,13 +631,12 @@ fun RegistrationProducts(
                 text = { Text("") },
                 confirmButton = {
                     TextButton(
-                        onClick = {
-                            notProductSucess = false
-                        }
+                        onClick = { notProductSucess = false }
                     ) {
                         Text("OK")
                     }
                 }
             )
         }
-    }}
+    }
+}

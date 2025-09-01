@@ -1,160 +1,270 @@
 package com.example.test_2.screens
 
+import android.app.Application
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.composetutorial.ui.theme.ComposeTutorialTheme
-import kotlinx.coroutines.delay
+import android.app.DatePickerDialog
+import android.util.Log
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.platform.LocalContext
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpOffset
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.test_2.bluetooth.model.BluetoothViewModel
+import com.example.test_2.bluetooth.utils.BluetoothViewModelFactory
+import com.example.test_2.data_db.AppDatabase
+import com.example.test_2.data_db.products.ProductViewModel
+import com.example.test_2.data_db.supplier.SupplierViewModel
+import com.example.test_2.menu.TopBarWithLogo
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConectPrinters2(navController: NavController) {
-    var showPrinters by remember { mutableStateOf(false) }
-    var selectedPrinter by remember { mutableStateOf<String?>(null) }
-    var loading by remember { mutableStateOf(false) }
+fun EditableDateInputField(
+    label: String = "Data",
+    initialDate: String = "",
+    onDateSelected: (String) -> Unit
+) {
+    val context = LocalContext.current
+    var textValue by remember { mutableStateOf(initialDate) }
+    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-    // Lista de impressoras de exemplo
-    val printers = listOf("HP LaserJet", "Epson EcoTank", "Canon Pixma")
+    fun openDatePicker() {
+        val currentDate = try {
+            LocalDate.parse(textValue, dateFormatter)
+        } catch (e: Exception) {
+            LocalDate.now()
+        }
 
-    fun searchForPrinters() {
-        if (!showPrinters) {
-            // Inicia a busca de impressoras
-            loading = true
-        } else if (selectedPrinter != null) {
-            // Navega para a tela de detalhes quando uma impressora está selecionada
-            navController.navigate("printer_details")
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                val newDate = LocalDate.of(year, month + 1, dayOfMonth)
+                textValue = newDate.format(dateFormatter)
+                onDateSelected(textValue)
+            },
+            currentDate.year,
+            currentDate.monthValue - 1,
+            currentDate.dayOfMonth
+        ).show()
+    }
+
+    OutlinedTextField(
+        value = textValue,
+        onValueChange = {
+            textValue = it
+            onDateSelected(it)
+        },
+        label = { Text(label) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = "Campo para $label" },
+        singleLine = true,
+        textStyle = TextStyle(color = Color.Black),
+        trailingIcon = {
+            IconButton(onClick = { openDatePicker() }) {
+                Icon(imageVector = Icons.Default.CalendarToday, contentDescription = "Selecionar data")
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConectPrinters(
+    navController: NavController,
+    openDrawer: () -> Unit
+) {
+    var productName by remember { mutableStateOf("") }
+    var responsible by remember { mutableStateOf("") }
+    var manufactureDate by remember { mutableStateOf("") }
+    var expirationDate by remember { mutableStateOf("") }
+    var quantit by remember { mutableStateOf("") }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current.applicationContext
+    val bluetoothViewModel: BluetoothViewModel = viewModel(
+        factory = BluetoothViewModelFactory(context as Application)
+    )
+
+    val database = remember { AppDatabase.getDatabase(context, scope) }
+    val viewModel = remember { database?.let { ProductViewModel(it.productsDao()) } }
+    val products by viewModel?.products ?: remember { mutableStateOf(emptyList()) }
+    var showProductsDropdown by remember { mutableStateOf(false) }
+    var inputHeight by remember { mutableStateOf(0f) }
+
+    LaunchedEffect(Unit) {
+        viewModel?.let { vm ->
+            scope.launch {
+                try {
+                    vm.getAll()
+                } catch (e: Exception) {
+                    Log.e("ConectPrinters", "Erro ao carregar produtos: ${e.message}")
+                }
+            }
         }
     }
 
-    // Simula o carregamento com um atraso de 2 segundos
-    LaunchedEffect(loading) {
-        if (loading) {
-            delay(2000L) // Atraso de 2 segundos
-            loading = false
-            showPrinters = true
+    Scaffold(
+        topBar = {
+            TopBarWithLogo(
+                userName = "Natanael Almeida",
+                onMenuClick = {
+                    scope.launch { drawerState.open() }
+                },
+                openDrawer = openDrawer
+            )
         }
-    }
-
-    ComposeTutorialTheme {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .padding(paddingValues)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "Encontrar impressoras:",
-                fontSize = 24.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 50.dp)
+            OutlinedTextField(
+                value = productName ?: "",
+                onValueChange = {},
+                label = { Text("Produtos") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 300.dp)
+                    .onGloballyPositioned { coordinates ->
+                        inputHeight = coordinates.size.height.toFloat()
+                    },
+                readOnly = true,
+                textStyle = TextStyle(color = Color.Black),
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Selecionar produto",
+                        modifier = Modifier.clickable { showProductsDropdown = true }
+                    )
+                }
             )
-
-            // Mostra a animação de carregamento ou a lista de impressoras
-            if (loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .padding(bottom = 16.dp)
-                        .semantics { contentDescription = "Buscando impressoras" },
-                    color = MaterialTheme.colorScheme.primary
+            DropdownMenu(
+                expanded = showProductsDropdown,
+                onDismissRequest = { showProductsDropdown = false },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp), // Altura máxima do menu
+                offset = DpOffset(
+                    x = 0.dp,
+                    y = with(LocalDensity.current) { inputHeight.toDp() }
                 )
-            } else if (showPrinters) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(printers) { printer ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { selectedPrinter = printer }
-                                .padding(horizontal = 8.dp),
-                            shape = MaterialTheme.shapes.medium
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(
-                                        if (selectedPrinter == printer) {
-                                            MaterialTheme.colorScheme.secondary // #343A40
-                                        } else {
-                                            MaterialTheme.colorScheme.surface
-                                        }
-                                    )
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                Text(
-                                    text = printer,
-                                    fontSize = 18.sp,
-                                    color = if (selectedPrinter == printer) {
-                                        MaterialTheme.colorScheme.onSecondary
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurface
-                                    },
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
+            ) {
+                if (products.isEmpty()) {
+                    DropdownMenuItem(
+                        text = { Text("Nenhum produto cadastrado") },
+                        onClick = { },
+                        enabled = false
+                    )
+                } else {
+                    products.forEach { product ->
+                        DropdownMenuItem(
+                            text = { Text(product.name) },
+                            onClick = {
+                                productName = product.name
+                                showProductsDropdown = false
                             }
-                        }
+                        )
                     }
                 }
             }
 
+            OutlinedTextField(
+                value = responsible,
+                onValueChange = { responsible = it },
+                label = { Text("Responsável") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(color = Color.Black)
+            )
 
-                Button(
-                    onClick = { searchForPrinters() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.padding(top = 50.dp, bottom = 50.dp),
-                    enabled = !loading // Habilita o botão se não estiver carregando
-                ) {
-                    if (showPrinters && selectedPrinter != null) {
-                        Text(
-                            text = "Conectar",
-                            modifier = Modifier.padding(10.dp),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    } else {
-                        Text(
-                            text = "Descobrir",
-                            modifier = Modifier.padding(10.dp),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
+            EditableDateInputField(
+                label = "Data de Fabricação",
+                initialDate = manufactureDate
+            ) { selected ->
+                manufactureDate = selected
+            }
+
+            EditableDateInputField(
+                label = "Validade",
+                initialDate = expirationDate
+            ) { selected ->
+                expirationDate = selected
+            }
+
+            OutlinedTextField(
+                value = quantit,
+                onValueChange = { quantit = it },
+                label = { Text("Quantidade de Etiquetas") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(color = Color.Black)
+            )
+
+            val quantitValue = quantit.toIntOrNull() ?: 1
+            Button(
+                onClick = {
+                    bluetoothViewModel.printLabel(
+                        text1 = productName,
+                        text2 = responsible,
+                        text3 = manufactureDate,
+                        text4 = expirationDate,
+                        text5 = quantitValue.toString()
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Imprimir")
+            }
+
+            Button(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Voltar")
             }
         }
     }

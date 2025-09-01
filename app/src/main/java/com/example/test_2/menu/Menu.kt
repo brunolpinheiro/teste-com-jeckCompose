@@ -208,8 +208,8 @@ fun AppDrawer(
                         drawerItem(
 
                             labelText = "Etiquetas",
-                            selected = currentRoute == "Printers",
-                            onClick = { onDestinationClicked("Printers") },
+                            selected = currentRoute == "ConectPrinters",
+                            onClick = { onDestinationClicked("ConectPrinters") },
                             modifier = Modifier.padding(start = 32.dp, top = 4.dp, bottom = 4.dp)
                         )
                         Divider(color = Color.White.copy(alpha = 0.3f))

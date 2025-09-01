@@ -24,7 +24,7 @@ import com.example.test_2.config.ConectPrinters
 import com.example.test_2.menu.AppDrawer
 import com.example.test_2.screens.roomBackup.DataBaseExport
 import com.example.test_2.screens.invetory.ShowProducts
-import com.example.test_2.screens.invetory.Printers
+import com.example.test_2.screens.ConectPrinters
 import com.example.test_2.screens.invetory.Report
 import com.example.test_2.screens.home.DashboardScreen
 import com.example.test_2.screens.inventory.ShowSupplier
@@ -91,7 +91,6 @@ fun MainApp() {
                     composable("ConectPrinters") {
                         ConectPrinters(
                             navController = navController,
-                            viewModel = bluetoothViewModel,
                             openDrawer = { scope.launch { drawerState.open() } }
                         )
                     }
@@ -140,13 +139,7 @@ fun MainApp() {
                             openDrawer = {scope.launch { drawerState.open() }}
                         )
                     }
-                    composable("Printers") {
-                        Printers(
-                            navController = navController,
-                            viewModel = bluetoothViewModel,
-                            openDrawer = { scope.launch { drawerState.open() } }
-                        )
-                    }
+
 
                     composable ( "ResgistrationSupplier" ){
                         SupplierRegistration(
