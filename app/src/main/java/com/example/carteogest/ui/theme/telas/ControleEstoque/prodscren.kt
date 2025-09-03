@@ -22,6 +22,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.layout.ContentScale
@@ -34,13 +36,17 @@ import com.example.carteogest.datadb.data_db.products.ProductViewModel
 import com.example.carteogest.factory.ProductViewModelFactory
 import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.launch
+import com.example.carteogest.datadb.data_db.login.UserViewModel
+import androidx.compose.ui.text.input.ImeAction
+
 
 @Composable
 fun DashboardScreenum(
     onAjustarEstoque: (produtoId: Int) -> Unit,
     onInserirValidade: (produtoId: Int) -> Unit,
     openDrawer: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    userViewModel: UserViewModel
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -48,7 +54,7 @@ fun DashboardScreenum(
     // Obtem o DB e o DAO
     val db = AppDatabase.getDatabase(context, scope)
     val produtoViewModel: ProductViewModel = viewModel(
-        factory = ProductViewModelFactory(db.productsDao())
+        factory = ProductViewModelFactory(db.productsDao(), db.validityDao())
     )
 
     val produtos by produtoViewModel.products
@@ -59,8 +65,8 @@ fun DashboardScreenum(
     var selectedCategory by remember { mutableStateOf<String?>(null) }
 
     val produtosFiltrados = produtos.filter { produto ->
-        produto.name.contains(query, ignoreCase = true) //&&
-                //(selectedCategory == null || produto.sector == selectedCategory)
+        produto.name.contains(query, ignoreCase = true) &&
+                (selectedCategory == null || produto.sector == selectedCategory)
     }
 
     var expandedItem by remember { mutableStateOf<String?>(null) }
@@ -75,9 +81,11 @@ fun DashboardScreenum(
     Scaffold(
         topBar = {
             TopBarWithLogo(
-                userName = "Natanael Almeida",
+                userViewModel = userViewModel,
                 onMenuClick = { coroutineScope.launch { drawerState.open() } },
-                openDrawer = openDrawer
+                openDrawer = openDrawer,
+                navController = navController
+
             )
         },
         floatingActionButton = {
@@ -86,7 +94,7 @@ fun DashboardScreenum(
                     onClick = { fabMenuExpanded = !fabMenuExpanded },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White,
-                    modifier = Modifier.size(56.dp)
+                    modifier = Modifier.size(56.dp).background(Color.White)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Cadastrar")
                 }
@@ -94,14 +102,16 @@ fun DashboardScreenum(
                 DropdownMenu(
                     expanded = fabMenuExpanded,
                     onDismissRequest = { fabMenuExpanded = false },
-                    offset = DpOffset(x = 0.dp, y = (-36).dp)
+                    offset = DpOffset(x = 0.dp, y = (-36).dp),
+                    modifier = Modifier.background(Color.White)
                 ) {
                     DropdownMenuItem(
                         text = { Text("Cadastrar Produtos") },
                         onClick = {
                             navController.navigate("ProdutoCadastroScreen/-1")
                             fabMenuExpanded = false
-                        }
+                        },
+                        modifier = Modifier.background(Color.White)
                     )
                 }
             }
@@ -118,35 +128,55 @@ fun DashboardScreenum(
                 value = query,
                 onValueChange = { query = it },
                 label = { Text("Pesquisar produtos") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Pesquisar", tint = MaterialTheme.colorScheme.primary) },
                 trailingIcon = {
                     IconButton(onClick = { showFilters = !showFilters }) {
                         Icon(Icons.Default.FilterList, contentDescription = "Filtrar", tint = MaterialTheme.colorScheme.primary)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        // aqui aplica o filtro
+                    }
+                )
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Filtros por setor
-            AnimatedVisibility(visible = showFilters) {
+            AnimatedVisibility(visible = showFilters,modifier = Modifier.fillMaxWidth()
+                .background(Color.White)) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth() .background(Color.White)
                 ) {
-                    item {
+                    item{
+
                         FilterChip(
-                            label = "Todas",
+                            label =  { Text("Todas", color = Color.Black) },
                             selected = selectedCategory == null,
-                            onClick = { selectedCategory = null }
+                            onClick = { selectedCategory = null },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = Color.White,
+                                selectedContainerColor = Color(0xFF004AAD)
+                            )
+
                         )
                     }
                     items(produtos.map { it.sector }.distinct()) { categoria ->
                         FilterChip(
-                            label = categoria,
+                            label = { Text(categoria, color = Color.Black) },
                             selected = selectedCategory == categoria,
-                            onClick = { selectedCategory = if (selectedCategory == categoria) null else categoria }
+                            onClick = { selectedCategory = if (selectedCategory == categoria) null else categoria },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = Color.White,
+                                selectedContainerColor = Color(0xFF004AAD)
+                            )
                         )
                     }
                 }
@@ -243,7 +273,11 @@ fun ProdutoItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                //horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+
+                //verticalAlignment = Alignment.CenterVertically
+
             ) {
                 Button(
                     onClick = onAjustarEstoque,
@@ -262,8 +296,6 @@ fun ProdutoItem(
                 ) {
                     Text("Inserir Validade", color = Color.White)
                 }
-
-                Spacer(modifier = Modifier.width(8.dp))
 
                 Button(
                     onClick = onEditarProduto,

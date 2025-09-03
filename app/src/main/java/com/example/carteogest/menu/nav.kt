@@ -11,33 +11,35 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.carteogest.bluetooth.model.BluetoothViewModel
 import com.example.carteogest.bluetooth.utils.BluetoothViewModelFactory
-import com.example.carteogest.login.AuthState
+import com.example.carteogest.datadb.data_db.login.AuthState
 import com.example.carteogest.ui.telas.login.LoginScreen
-import com.example.carteogest.ui.telas.ControleEstoque.RecebimentoScreen
 import com.example.carteogest.ui.telas.config.ConectPrinters
 import com.example.carteogest.ui.telas.ControleEstoque.StockAdjustmentScreen
-import com.example.carteogest.ui.telas.ControleEstoque.Printers
 import com.example.carteogest.ui.telas.ControleEstoque.RelatoriosEstoqueScreen
 import com.example.carteogest.ui.telas.inicio.DashboardScreen
 import com.example.carteogest.ui.telas.ControleEstoque.DashboardScreenum
 import com.example.carteogest.ui.telas.inicio.Fornecedores
 import com.example.carteogest.ui.telas.ControleEstoque.TelaValidades
 import com.example.carteogest.ui.telas.cadastro.UserRegistrationScreen
-import com.example.carteogest.login.UserViewModel
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 import com.example.carteogest.ui.theme.telas.usuarios.UserListScreen
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.carteogest.dashboard.DashboardFromSideMenu
 import com.example.carteogest.datadb.data_db.AppDatabase
 import com.example.carteogest.datadb.data_db.products.ProductViewModel
 import com.example.carteogest.datadb.data_db.supplier.SupplierViewModel
 import com.example.carteogest.factory.ProductViewModelFactory
 import com.example.carteogest.factory.supplierViewModelFactory
 import com.example.carteogest.iu.telas.ControleEstoque.SupplierRegistration
-import com.example.carteogest.login.UserPrefs
-import com.example.carteogest.login.UserRepository
+import com.example.carteogest.datadb.data_db.login.UserPrefs
+import com.example.carteogest.datadb.data_db.login.UserRepository
+import com.example.carteogest.factory.UsersViewModelFactory
+import com.example.carteogest.ui.telas.ControleEstoque.ImpressaoAgrupadaScreen
 import com.example.carteogest.ui.telas.ControleEstoque.ProdutoCadastroScreen
+import com.example.carteogest.ui.telas.UserPanelScreen
 import com.example.carteogest.ui.telas.roomBackup.DataBaseExport
 import com.example.carteogest.ui.telas.roomBackup.DataBaseImport
 import com.example.carteogest.ui.theme.telas.cadastro.modal.UserViewModelFactory
@@ -67,14 +69,18 @@ fun MainApp() {
     )
 
     val produtoViewModel: ProductViewModel = viewModel(
-        factory = ProductViewModelFactory(db.productsDao())
+        factory = ProductViewModelFactory(db.productsDao(), db.validityDao())
     )
     val supllierViewModel: SupplierViewModel = viewModel(
         factory = supplierViewModelFactory(db.supplierDao()))
 
+
     // Inicializa dados
     LaunchedEffect(Unit) {
         produtoViewModel.getAll()
+        supllierViewModel.getAll()
+        userViewModel.loadUsers()
+
     }
 
     // Observa autenticação
@@ -116,23 +122,31 @@ fun MainApp() {
                         NavHost(navController = navController, startDestination = "dash") {
                             composable("dash") {
                                 DashboardScreen(
-
-                                    openDrawer = { scope.launch { drawerState.open() } }
+                                    openDrawer = { scope.launch { drawerState.open() } },
+                                    userViewModel = userViewModel,
+                                    navController = navController
                                 )
+
+
+                            }
+                            composable("DashboardFromSideMenu") {
+                                DashboardFromSideMenu(
+                                    viewModel = BluetoothViewModel
+
+                                )
+
+
                             }
 
-                            composable("dash1") {
-                                /*val produtoViewModel: ProductsViewModel = viewModel()
 
-                                // Garante que os produtos fictícios sejam carregados
-                                LaunchedEffect(Unit) {
-                                    produtoViewModel.carregarProdutos()
-                                }*/
+                            composable("dash1") {
+
                                 DashboardScreenum(
                                     onAjustarEstoque = { },
                                     onInserirValidade = { },
                                     openDrawer = { scope.launch { drawerState.open() } },
                                     navController = navController,
+                                    userViewModel = userViewModel
                                 )
 
                             }
@@ -141,24 +155,24 @@ fun MainApp() {
                                 Fornecedores(
                                     openDrawer = { scope.launch { drawerState.open() } },
                                     navController = navController,
+                                    userViewModel = userViewModel
                                 )
                             }
-                            composable("RecebimentoScreen") {
-                                RecebimentoScreen(
-                                    onFinalizar = { },
-                                    openDrawer = { scope.launch { drawerState.open() } }
-                                )
-                            }
+
                             composable("ConectPrinters") {
                                 ConectPrinters(
                                     navController = navController,
                                     viewModel = bluetoothViewModel,
-                                    openDrawer = { scope.launch { drawerState.open() } }
+                                    openDrawer = { scope.launch { drawerState.open() } },
+                                    userViewModel = userViewModel
                                 )
                             }
                             composable("StockAdjustmentScreen") {
                                 StockAdjustmentScreen(
-                                    openDrawer = { scope.launch { drawerState.open() } }
+                                    productViewModel = produtoViewModel,
+                                    openDrawer = { scope.launch { drawerState.open() } },
+                                    userViewModel = userViewModel,
+                                    navController = navController
                                 )
                             }
                             composable("RelatoriosEstoqueScreen") {
@@ -168,7 +182,10 @@ fun MainApp() {
                                     onVoltar = { },
                                     onExportarPDF = { _, _ -> },
                                     onExportarXLS = { _, _ -> },
-                                    openDrawer = { scope.launch { drawerState.open() } }
+                                    openDrawer = { scope.launch { drawerState.open() } },
+                                    userViewModel = userViewModel,
+                                    navController = navController
+
                                 )
 
                             }
@@ -182,16 +199,19 @@ fun MainApp() {
                                     openDrawer = { scope.launch { drawerState.open() } },
                                     productViewModel = produtoViewModel,
                                     produtoId = produtoId,
-                                    navController = navController
+                                    navController = navController,
+                                    userViewModel = userViewModel
                                 )
                             }
-                            composable("Printers") {
+                           /* composable("Printers") {
                                 Printers(
                                     navController = navController,
                                     viewModel = bluetoothViewModel,
+                                    productViewModel = produtoViewModel,
+                                    userViewModel = userViewModel,
                                     openDrawer = { scope.launch { drawerState.open() } }
                                 )
-                            }
+                            }*/
 
                             composable(
                                 "SupplierRegistration/{fornecedoresId}",
@@ -202,17 +222,24 @@ fun MainApp() {
                                     supplierViewModel = supllierViewModel,
                                     openDrawer = { scope.launch { drawerState.open() } },
                                     navController = navController,
-                                    fornecedoresid = fornecedoresId
+                                    fornecedoresid = fornecedoresId,
+                                    userViewModel = userViewModel
                                 )
                             }
                             composable("StockAdjustmentScreen") {
                                 StockAdjustmentScreen(
-                                    openDrawer = { scope.launch { drawerState.open() } }
+                                    productViewModel = produtoViewModel,
+                                    openDrawer = { scope.launch { drawerState.open() } },
+                                    userViewModel = userViewModel,
+                                    navController = navController
                                 )
                             }
                             composable("TelaValidades") {
                                 TelaValidades(
-                                    openDrawer = { scope.launch { drawerState.open() } }
+                                    viewModel = produtoViewModel,
+                                    openDrawer = { scope.launch { drawerState.open() } },
+                                    userViewModel = userViewModel,
+                                    navController = navController
                                 )
                             }
 
@@ -226,7 +253,8 @@ fun MainApp() {
                                     viewModel = userViewModel,
                                     openDrawer = { scope.launch { drawerState.open() } },
                                     usuarioId = usuarioId,
-                                    navController = navController
+                                    navController = navController,
+                                    userViewModel = userViewModel
 
                                 )
                             }
@@ -246,12 +274,29 @@ fun MainApp() {
                                 UserListScreen (
                                     viewModel = userViewModel,
                                     onDestinationClicked = {},
-                                    openDrawer = { scope.launch { drawerState.open() } },
-                                    navController = navController
-
+                                    openDrawer = { scope.launch { drawerState.open() }},
+                                    navController = navController,
+                                    userViewModel = userViewModel
 
                                 )
                             }
+                            composable("ImpressaoAgrupadaScreen"){
+                                ImpressaoAgrupadaScreen (
+                                    navController = navController,
+                                    viewModel = bluetoothViewModel,
+                                    productViewModel = produtoViewModel,
+                                    userViewModel = userViewModel,
+                                    openDrawer = { scope.launch { drawerState.open() }}
+                                )
+                            }
+                            composable("UserPanelScreen"){
+                                UserPanelScreen (
+                                    userViewModel = userViewModel,
+                                    onPasswordChanged = {},
+                                    onLogout = {}
+                                )
+                            }
+
 
                         }
                     }

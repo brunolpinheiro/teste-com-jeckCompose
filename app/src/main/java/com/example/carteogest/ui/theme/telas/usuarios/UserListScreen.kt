@@ -2,11 +2,13 @@ package com.example.carteogest.ui.theme.telas.usuarios
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -31,11 +33,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.carteogest.login.User
-import com.example.carteogest.login.UserViewModel
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 import com.example.carteogest.menu.TopBarWithLogo
 import com.example.carteogest.ui.telas.ControleEstoque.FilterChip
 import kotlinx.coroutines.launch
+import androidx.compose.ui.text.input.ImeAction
 
 
 @Composable
@@ -43,7 +45,8 @@ fun UserListScreen(
     viewModel: UserViewModel,
     onDestinationClicked: (String) -> Unit,
     openDrawer: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    userViewModel: UserViewModel
 ) {
     val users by viewModel.users.collectAsState(initial = emptyList())
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -60,18 +63,16 @@ fun UserListScreen(
     var expandedItem by remember { mutableStateOf<String?>(null) }
     var fabMenuExpanded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.loadUsers()
-    }
 
     Scaffold(
         topBar = {
             TopBarWithLogo(
-                userName = "Natanael Almeida",
+                userViewModel = userViewModel,
                 onMenuClick = {
                     scope.launch { drawerState.open() }
                 },
-                openDrawer = openDrawer
+                openDrawer = openDrawer,
+                navController = navController
 
             )
         },
@@ -90,20 +91,21 @@ fun UserListScreen(
                 DropdownMenu(
                     expanded = fabMenuExpanded,
                     onDismissRequest = { fabMenuExpanded = false },
-                    offset = DpOffset(x = 0.dp, y = (-56).dp)
+                    offset = DpOffset(x = 0.dp, y = (-56).dp),
+                    modifier = Modifier.background(Color.White)
                 ) {
                     DropdownMenuItem(
                         text = {
                             Text(
-                                "Cadastrar Fornecedor",
-                                color = Color.White,
+                                "Cadastrar Usúarios",
+                                color = Color.Black,
                                 modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)
 
                             )
                         },
                         onClick = { navController.navigate("UserRegistrationScreen/-1") },
                         modifier = Modifier
-                            .background(Color(0xFF004AAD), shape = RoundedCornerShape(8.dp))
+                            .background(Color.White, shape = RoundedCornerShape(8.dp))
                             .clip(RoundedCornerShape(8.dp))
                     )
                 }
@@ -123,7 +125,9 @@ fun UserListScreen(
                         Icon(Icons.Default.FilterList, contentDescription = "Filtrar", tint = MaterialTheme.colorScheme.primary)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true, // <-- impede quebra de linha
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search) // opcional: muda Enter para "Buscar"
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -173,24 +177,26 @@ fun UserListScreen(
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(users) { user ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth()
-                            .background(Color.White, shape = RoundedCornerShape(4.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .background(Color.White, shape = RoundedCornerShape(8.dp))
                             .shadow(
                                 elevation = 2.dp,
-                                shape = RoundedCornerShape(6.dp),
+                                shape = RoundedCornerShape(8.dp),
                                 ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), // sombra azul
                                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                            ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        shape = RoundedCornerShape(12.dp)
+                            )
+                            .padding(10.dp)
                     ) {
                         Row(
                             modifier = Modifier
                                 .padding(12.dp)
                                 .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement . SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
+
                         ) {
                             Column {
                                 Text(user.nome, style = MaterialTheme.typography.titleMedium)
@@ -198,9 +204,10 @@ fun UserListScreen(
                                     "Nome: ${user.nome}",
                                     style = MaterialTheme.typography.bodySmall
                                 )
+
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                IconButton(onClick = { onDestinationClicked("UserRegistrationScreen/${user.uid}") }) {
+                                IconButton(onClick = { navController.navigate("UserRegistrationScreen/${user.uid}") }) {
                                     Icon(Icons.Default.Edit, contentDescription = "Editar")
                                 }
                                 IconButton(onClick = { viewModel.deleteUser(user.uid!!) }) {
@@ -210,8 +217,9 @@ fun UserListScreen(
                         }
                     }
                 }
+                }
             }
         }
     }
-}
+
 

@@ -1,11 +1,7 @@
 // UserRepository.kt
-package com.example.carteogest.login
+package com.example.carteogest.datadb.data_db.login
 
 import android.util.Log
-import com.example.carteogest.datadb.data_db.supplier.Supplier
-import com.example.carteogest.login.UserDao
-import com.example.carteogest.datadb.dbrom.RoleDao
-import com.example.carteogest.login.User
 import java.security.MessageDigest
 
 
@@ -41,7 +37,17 @@ class UserRepository(private val userDao: UserDao,
     suspend fun getById(id: Int): User? {
         return userDao.getById(id)
     }
-
+    suspend fun findUserByName(nome: String): User? {
+        return try {
+            userDao.findUserByName(nome)
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Erro ao buscar usuário pelo nome: ${e.message}")
+            null
+        }
+    }
+    suspend fun getPermissao(nome: String): String? {
+        return userDao.getPermissaoByName(nome)
+    }
 
     suspend fun logout() {
         userPrefs.clearLoggedUser()

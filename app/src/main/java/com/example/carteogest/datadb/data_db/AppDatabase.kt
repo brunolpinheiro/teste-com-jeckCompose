@@ -5,31 +5,29 @@ import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
-import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.carteogest.datadb.data_db.products.ProdutsDao
 import com.example.carteogest.datadb.data_db.products.Products
 import com.example.carteogest.datadb.data_db.supplier.Supplier
 import com.example.carteogest.datadb.data_db.supplier.SupplierDao
-import com.example.carteogest.login.User
-import com.example.carteogest.login.UserDao
-import com.example.carteogest.login.hashSenha
-import com.example.carteogest.login.permissoes.Permissao
-import com.example.carteogest.login.permissoes.PermissaoDao
+import com.example.carteogest.datadb.data_db.login.User
+import com.example.carteogest.datadb.data_db.login.UserDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.lang.reflect.Type
+import com.example.carteogest.datadb.data_db.validity.ValidityAndFabrication
+import com.example.carteogest.datadb.data_db.validity.ValidityDao
 
 
-@Database(entities = [Products::class, Supplier::class,User::class, Permissao::class], version = 3, exportSchema = false)
+@Database(entities = [Products::class, Supplier::class,User::class, ValidityAndFabrication::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun productsDao(): ProdutsDao  // Corrigido o erro de digitação
     abstract fun supplierDao(): SupplierDao
     abstract fun userDao(): UserDao
-    abstract fun permissaoDao(): PermissaoDao
+
+    abstract fun validityDao(): ValidityDao
+
 
 
     companion object {
@@ -54,7 +52,8 @@ abstract class AppDatabase : RoomDatabase() {
                                             val userDao = database.userDao()
                                             val productsDao = database.productsDao()
                                             val supplierDao = database.supplierDao()
-                                            userDao.addUser(User(nome = "admin", senha ="1234"))
+                                            val validityDao = INSTANCE?.validityDao()
+                                            userDao.addUser(User(nome = "admin", senha ="1234", permissao = "ADMIN"))
 
                                         }
                                     } catch (e: Exception) {

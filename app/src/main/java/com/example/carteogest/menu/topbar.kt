@@ -9,25 +9,36 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.CarteoGest.R
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarWithLogo(
     onMenuClick: () -> Unit,
-    userName: String = "Usuário Teste",
-    openDrawer: () -> Unit
+    userViewModel: UserViewModel = viewModel(),
+    openDrawer: () -> Unit,
+    navController: NavController
 ) {
+
+
+    val usuario by userViewModel.usuarioLogado.collectAsState()
+
+
     CenterAlignedTopAppBar(
         modifier = Modifier .background(MaterialTheme.colorScheme.primary,shape = RoundedCornerShape(72.dp)),
         title = {
             Text(
-                text = "Olá, $userName",
+                text = "Olá, $usuario",
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium
             )
@@ -38,10 +49,10 @@ fun TopBarWithLogo(
             }
         },
         actions = {
-            IconButton(onClick = {/*onNotificationsClick"*/}) {
+            IconButton(onClick = { }) {
                 Icon(Icons.Default.Notifications, contentDescription = "Notificações", tint = Color.White)
             }
-            IconButton(onClick = {/*onNotificationsClick"*/}) {
+            IconButton(onClick = {navController.navigate("UserPanelScreen") }) {
                 Icon(
                     painter = painterResource(id = R.drawable.icone),
                     contentDescription = "Perfil do usuário",

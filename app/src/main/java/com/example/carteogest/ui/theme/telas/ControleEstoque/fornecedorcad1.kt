@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.carteogest.datadb.data_db.AppDatabase
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 import com.example.carteogest.datadb.data_db.supplier.Supplier
 import com.example.carteogest.datadb.data_db.supplier.SupplierViewModel
 import com.example.carteogest.factory.supplierViewModelFactory
@@ -27,11 +28,21 @@ fun SupplierRegistration(
     supplierViewModel: SupplierViewModel,
     openDrawer: () -> Unit,
     navController: NavController,
-    fornecedoresid: Int
+    fornecedoresid: Int,
+    userViewModel: UserViewModel
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val database = remember { AppDatabase.getDatabase(context, scope) }
+    //permissao
+    val usuarioNome by userViewModel.usuarioLogado.collectAsState()
+    var permissao by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(usuarioNome) {
+        usuarioNome?.let { nome ->
+            permissao = userViewModel.getPermissao(nome)
+        }
+    }
 
     var name by remember { mutableStateOf("") }
     var cnpj by remember { mutableStateOf("") }
@@ -62,11 +73,12 @@ fun SupplierRegistration(
     Scaffold(
         topBar = {
             TopBarWithLogo(
-                userName = "Bruno",
+                userViewModel = userViewModel,
                 onMenuClick = {
                     scope.launch { drawerState.open() }
                 },
-                openDrawer = openDrawer
+                openDrawer = openDrawer,
+                navController = navController
             )
         }
     ) { padding ->
@@ -172,7 +184,7 @@ fun SupplierRegistration(
                     ) {
                         Text("Salvar", fontSize = 18.sp)
                     }
-                    if (fornecedoresid != -1) {
+                    if (fornecedoresid != -1 && (permissao == "ADMIN" || permissao == "ESTOQUISTA")) {
                         Button(
                             onClick = {
                                 scope.launch {

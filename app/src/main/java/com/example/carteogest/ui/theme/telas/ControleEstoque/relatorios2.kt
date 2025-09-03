@@ -14,9 +14,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 
 enum class TipoRelatorio {
     PRODUTO, FORNECEDOR, FORNECEDOR_AGRUPADO
@@ -30,7 +32,9 @@ fun RelatoriosEstoqueScreen(
     onVoltar: () -> Unit,
     onExportarPDF: (List<Any>, List<String>) -> Unit,
     onExportarXLS: (List<Any>, List<String>) -> Unit,
-    openDrawer: () -> Unit
+    openDrawer: () -> Unit,
+    userViewModel: UserViewModel,
+    navController: NavController
 ) {
     var tipoRelatorio by remember { mutableStateOf(TipoRelatorio.PRODUTO) }
     var categoria by remember { mutableStateOf("") }
@@ -54,9 +58,10 @@ fun RelatoriosEstoqueScreen(
     Scaffold(
         topBar = {
             TopBarWithLogo(
-                userName = "Natanael Almeida",
+                userViewModel = userViewModel,
                 onMenuClick = { scope.launch { drawerState.open() } },
-                openDrawer = openDrawer
+                openDrawer = openDrawer,
+                navController = navController
             )
         }
     ) { paddingValues ->

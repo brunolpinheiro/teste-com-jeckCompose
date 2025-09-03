@@ -2,8 +2,8 @@ package com.example.carteogest.ui.theme.telas.cadastro.modal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.carteogest.login.UserRepository
-import com.example.carteogest.login.UserViewModel
+import com.example.carteogest.datadb.data_db.login.UserRepository
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 
 /*
 

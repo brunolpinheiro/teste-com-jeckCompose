@@ -3,6 +3,7 @@ package com.example.carteogest.ui.telas.config
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.example.carteogest.bluetooth.model.BluetoothViewModel
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -37,10 +39,12 @@ import kotlin.let
 @SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/*
 fun ConectPrinters(
     navController: NavController,
     viewModel: BluetoothViewModel,
     openDrawer: () -> Unit,
+    userViewModel: UserViewModel
 ) {
 
     var showPrinters by remember { mutableStateOf(false) }
@@ -52,8 +56,11 @@ fun ConectPrinters(
     val printers by viewModel.deviceList.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        viewModel.registerDisconnectReceiver(context)
+    }
 
-    fun searchForPrinters() {
+    /*fun searchForPrinters() {
         if (!showPrinters) {
             loading = true
             viewModel.startDiscovery()
@@ -61,7 +68,24 @@ fun ConectPrinters(
         } else if (selectedPrinter != null) {
             selectedPrinter?.let {
                 viewModel.connectToDevice(it.address)
-                navController.navigate("Printers")
+                navController.navigate("ImpressaoAgrupadaScreen")
+            }
+        }
+    }*/
+    fun searchForPrinters() {
+        if (!showPrinters) {
+            loading = true
+            viewModel.startDiscovery()
+            showPrinters = true
+        } else if (selectedPrinter != null) {
+            scope.launch {
+                val success = viewModel.connectToDevice(selectedPrinter!!)
+                if (success) {
+                    navController.navigate("ImpressaoAgrupadaScreen")
+                } else {
+                    // Mostra alerta de falha
+                    Toast.makeText(context, "Falha ao conectar. Verifique a impressora.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -77,11 +101,12 @@ fun ConectPrinters(
     Scaffold(
         topBar = {
             TopBarWithLogo(
-                userName = "Natanael Almeida",
+                userViewModel = userViewModel,
                 onMenuClick = {
                     scope.launch { drawerState.open() }
                 },
-                openDrawer = openDrawer
+                openDrawer = openDrawer,
+                navController = navController
 
             )
         }
@@ -173,3 +198,165 @@ fun ConectPrinters(
     }
 }
 
+*/
+
+fun ConectPrinters(
+    navController: NavController,
+    viewModel: BluetoothViewModel,
+    openDrawer: () -> Unit,
+    userViewModel: UserViewModel
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+
+    // Estado de UI
+    var showPrinters by remember { mutableStateOf(false) }
+    var selectedPrinter by remember { mutableStateOf<BluetoothDevice?>(null) }
+    var loading by remember { mutableStateOf(false) }
+
+    // Lista de dispositivos do ViewModel
+    val printers by viewModel.deviceList.collectAsState()
+    val connectedDevice by viewModel.connectedDevice.collectAsState()
+    val hasPermission = remember { viewModel.hasBluetoothPermission(context) }
+
+    // Registrar BroadcastReceiver de desconexão
+    LaunchedEffect(Unit) {
+        viewModel.registerDisconnectReceiver(context)
+    }
+
+    // Função para buscar ou conectar impressora
+    fun searchOrConnect() {
+        if (!showPrinters) {
+            loading = true
+            viewModel.startDiscovery()
+            showPrinters = true
+        } else if (selectedPrinter != null) {
+            scope.launch {
+                val success = viewModel.connectToDevice(selectedPrinter!!)
+                if (success) {
+                    Toast.makeText(context, "Conectado a ${selectedPrinter?.name}", Toast.LENGTH_SHORT).show()
+                    navController.navigate("ImpressaoAgrupadaScreen")
+                } else {
+                    Toast.makeText(context, "Falha ao conectar. Verifique a impressora.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    // Simula loading da descoberta
+    LaunchedEffect(loading) {
+        if (loading) {
+            delay(2000)
+            loading = false
+            showPrinters = true
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopBarWithLogo(
+                userViewModel = userViewModel,
+                onMenuClick = { scope.launch { drawerState.open() } },
+                openDrawer = openDrawer,
+                navController = navController
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Text(
+                text = "Encontrar impressoras:",
+                fontSize = 24.sp,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            // Loading
+            if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .padding(bottom = 16.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            // Lista de impressoras
+            if (showPrinters) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(printers) { printer ->
+                        val name = if (hasPermission) printer.name ?: "Desconhecida" else "Permissão negada"
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedPrinter = printer }
+                                .padding(horizontal = 8.dp),
+                            shape = MaterialTheme.shapes.medium,
+                            colors = if (selectedPrinter == printer)
+                                CardDefaults.cardColors(MaterialTheme.colorScheme.secondary)
+                            else
+                                CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                Text(
+                                    text = name,
+                                    fontSize = 18.sp,
+                                    color = if (selectedPrinter == printer)
+                                        MaterialTheme.colorScheme.onSecondary
+                                    else
+                                        MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Botão Descobrir/Conectar
+            Button(
+                onClick = { searchOrConnect() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !loading && (selectedPrinter != null || !showPrinters)
+            ) {
+                Text(
+                    text = if (showPrinters && selectedPrinter != null) "Conectar" else "Descobrir",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+
+            // Exibe impressora conectada
+            connectedDevice?.let {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Conectado a: ${it.name ?: "Desconhecida"}",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
+}

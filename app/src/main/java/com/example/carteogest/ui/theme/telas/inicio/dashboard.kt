@@ -19,22 +19,30 @@ import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.utils.ColorTemplate
 import androidx.compose.ui.graphics.toArgb
+import androidx.navigation.NavController
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.launch
 
 @Composable
-fun DashboardScreen(openDrawer: () -> Unit) {
+fun DashboardScreen(
+    openDrawer: () -> Unit,
+    userViewModel: UserViewModel,
+    navController: NavController
+
+) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             TopBarWithLogo(
-                userName = "Natanael Almeida",
+                userViewModel = userViewModel,
                 onMenuClick = {
                     scope.launch { drawerState.open() }
                 },
-                openDrawer = openDrawer
+                openDrawer = openDrawer,
+                navController = navController
 
             )
         }

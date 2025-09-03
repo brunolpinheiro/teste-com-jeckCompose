@@ -32,6 +32,7 @@ import com.example.carteogest.datadb.data_db.supplier.SupplierViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 import com.example.carteogest.datadb.data_db.supplier.Supplier
 import com.example.carteogest.factory.ProductViewModelFactory
 import com.example.carteogest.factory.supplierViewModelFactory
@@ -89,9 +91,21 @@ fun ProdutoCadastroScreen(
     openDrawer: () -> Unit,
     productViewModel: ProductViewModel,
     produtoId: Int,
-    navController : NavController
+    navController : NavController,
+    userViewModel: UserViewModel
 
 ) {
+
+    //permissao
+    val usuarioNome by userViewModel.usuarioLogado.collectAsState()
+    var permissao by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(usuarioNome) {
+        usuarioNome?.let { nome ->
+            permissao = userViewModel.getPermissao(nome)
+        }
+    }
+
     val context = LocalContext.current
     val database = remember { AppDatabase.getDatabase(context, CoroutineScope(Dispatchers.IO)) }
     val supllierViewModel: SupplierViewModel = viewModel(
@@ -118,6 +132,9 @@ fun ProdutoCadastroScreen(
     val statusOptions = listOf("Ativo", "Inativo")
     //unidades de medidas
     val unidades = listOf("Unidade", "Caixa", "Kg", "Litro", "Metro")
+
+    var expanded by remember { mutableStateOf(false) }
+    var fornecedorSelecionado by remember { mutableStateOf<Supplier?>(null) }
 
 
     //val de menu
@@ -149,7 +166,7 @@ fun ProdutoCadastroScreen(
                 promotionalPrice = 0f,
                 quantity = 0,
                 brand = "",
-                supplier = "",
+                supplierId =  null,
                 status = true,
                 barcode = "",
                 cost = 0f,
@@ -187,11 +204,12 @@ fun ProdutoCadastroScreen(
     Scaffold(
         topBar = {
             TopBarWithLogo(
-                userName = "Natanael Almeida",
+                userViewModel = userViewModel,
                 onMenuClick = {
                     scope.launch { drawerState.open() }
                 },
-                openDrawer = openDrawer
+                openDrawer = openDrawer,
+                navController = navController
 
             )
         }
@@ -216,36 +234,7 @@ fun ProdutoCadastroScreen(
                         fontSize = 16.sp
                     )
                 } else {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(imagens) { uri ->
-                            Image(
-                                painter = rememberAsyncImagePainter(
-                                    ImageRequest.Builder(context).data(uri).size(Size.ORIGINAL)
-                                        .build()
-                                ),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clickable {
-                                        // Poderia implementar remover a imagem ao clicar
-                                    },
-                                contentScale = ContentScale.Crop
-                            )
-                        }
 
-                        item {
-                            // Botão para adicionar imagens
-                            OutlinedButton(
-                                onClick = { launcher.launch("image/*") },
-                                modifier = Modifier.size(100.dp)
-                            ) {
-                                Text("+")
-                            }
-                        }
-                    }
                     Spacer(Modifier.height(12.dp))
                     OutlinedTextField(
                         value = produto.name,
@@ -253,13 +242,16 @@ fun ProdutoCadastroScreen(
                             produto = produto.copy(name = novoNome)
                         },
                         label = { Text("Nome do Produto*") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+
                     )
 
                     Spacer(Modifier.height(8.dp))
                     if (produto != null) {
                         Text("Código Interno: ${produto!!.uid}", fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(8.dp))
+
                     }
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
@@ -268,7 +260,8 @@ fun ProdutoCadastroScreen(
                             produto = produto.copy(skuCode = novoCode)
                         },
                         label = { Text("Código/SKU") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
                     )
 
 
@@ -281,7 +274,8 @@ fun ProdutoCadastroScreen(
                         selectedOption = produto.sector,
                         onOptionSelected = { selecionadoOuNovo ->
                             produto = produto.copy(sector = selecionadoOuNovo)
-                        }
+                        },
+
                     )
 
                     Spacer(Modifier.height(8.dp))
@@ -295,7 +289,8 @@ fun ProdutoCadastroScreen(
                         },
                         label = { Text("Preço*") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
                     )
 
                     Spacer(Modifier.height(8.dp))
@@ -308,7 +303,8 @@ fun ProdutoCadastroScreen(
                         },
                         label = { Text("Preço Promocional (Opcional)") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
                     )
 
                     Spacer(Modifier.height(8.dp))
@@ -321,7 +317,8 @@ fun ProdutoCadastroScreen(
                         },
                         label = { Text("Estoque / Quantidade") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
                     )
 
                     Spacer(Modifier.height(8.dp))
@@ -344,7 +341,8 @@ fun ProdutoCadastroScreen(
                             produto = produto.copy(brand = marca)
                         },
                         label = { Text("Marca / Fabricante") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
                     )
 
                     Spacer(Modifier.height(8.dp))
@@ -368,7 +366,8 @@ fun ProdutoCadastroScreen(
                             produto = produto.copy(barcode = novocode)
                         },
                         label = { Text("Código de Barras") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
                     )
 
                     Spacer(Modifier.height(8.dp))
@@ -382,12 +381,13 @@ fun ProdutoCadastroScreen(
                         },
                         label = { Text("Custo") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
                     )
 
 
                     Spacer(Modifier.height(8.dp))
-
+/*
                     Text("Número de fornecedores: ${suppliers.size ?: "nenhum"}") // Corrigido para lidar com null ou vazio
                     Box(
                         modifier = Modifier
@@ -439,7 +439,46 @@ fun ProdutoCadastroScreen(
                             }
                         }
                     }
-
+*/
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                        modifier = Modifier.background(Color.White)
+                    ) {
+                        OutlinedTextField(
+                            value = fornecedorSelecionado?.name ?: "Selecione um fornecedor",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Fornecedor (opcional)") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            if (suppliers.isEmpty()) {
+                                DropdownMenuItem(
+                                    text = { Text("Nenhum fornecedor cadastrado") },
+                                    onClick = {},
+                                    enabled = false
+                                )
+                            } else {
+                                suppliers.forEach { fornecedor ->
+                                    DropdownMenuItem(
+                                        text = { Text(fornecedor.name) },
+                                        onClick = {
+                                            fornecedorSelecionado = fornecedor
+                                            expanded = false
+                                            produto = produto.copy(supplierId = fornecedor.uid) // 👈 salva ID
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
                     Spacer(Modifier.height(16.dp))
 
 
@@ -453,10 +492,12 @@ fun ProdutoCadastroScreen(
                                     produto?.let {
                                         if (produtoId == -1) {
                                             // Novo produto
-                                            productViewModel.insertProduct(it)
+                                            val produtoFinal = produto.copy(supplierId = fornecedorSelecionado?.uid)
+                                            productViewModel.insertProduct(produtoFinal)
                                         } else {
                                             // Atualização
-                                            productViewModel.updateProduct(it)
+                                            val produtoFinal = produto.copy(supplierId = fornecedorSelecionado?.uid)
+                                            productViewModel.updateProduct(produtoFinal)
                                         }
                                         navController.popBackStack()
                                     }
@@ -466,7 +507,7 @@ fun ProdutoCadastroScreen(
                             Text(if (produtoId == -1) "Salvar" else "Atualizar")
                         }
 
-                        if (produtoId != -1 && produto != null) {
+                        if (produtoId != -1 && produto != null&& (permissao == "ADMIN" || permissao == "ESTOQUISTA")) {
                             Button(
                                 onClick = {
                                     scope.launch {

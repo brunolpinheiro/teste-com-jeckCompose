@@ -12,9 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.CarteoGest.R
-import com.example.carteogest.login.AuthState
-import com.example.carteogest.login.UserViewModel
-import com.example.carteogest.login.hashSenha
+import com.example.carteogest.datadb.data_db.login.AuthState
+import com.example.carteogest.datadb.data_db.login.UserViewModel
 
 @Composable
 fun LoginScreen(

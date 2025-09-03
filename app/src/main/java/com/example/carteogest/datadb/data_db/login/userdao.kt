@@ -1,11 +1,8 @@
 // UserDao.kt
-package com.example.carteogest.login
+package com.example.carteogest.datadb.data_db.login
 
 
 import androidx.room.*
-import com.example.carteogest.datadb.data_db.supplier.Supplier
-
-import com.example.carteogest.login.User
 
 
 @Dao
@@ -32,7 +29,12 @@ interface UserDao {
     @Query("SELECT EXISTS(SELECT 1 FROM usuarios WHERE LOWER(TRIM(nome)) = LOWER(TRIM(:nome)) LIMIT 1)")
     suspend fun findByName(nome: String): Boolean
 
+        @Query("SELECT * FROM usuarios WHERE nome = :nome LIMIT 1")
+        suspend fun findUserByName(nome: String): User?
 
+
+    @Query("SELECT permissao FROM usuarios WHERE nome = :nome LIMIT 1")
+    suspend fun getPermissaoByName(nome: String): String?
 
 }
 

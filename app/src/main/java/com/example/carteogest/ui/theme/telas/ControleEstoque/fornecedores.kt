@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -47,12 +48,15 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.carteogest.datadb.data_db.AppDatabase
 import com.example.carteogest.datadb.data_db.supplier.SupplierViewModel
 import com.example.carteogest.factory.supplierViewModelFactory
+import com.example.carteogest.datadb.data_db.login.UserViewModel
+import androidx.compose.ui.text.input.ImeAction
 
 
 @Composable
 fun Fornecedores(
     openDrawer: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    userViewModel: UserViewModel
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -85,11 +89,12 @@ fun Fornecedores(
     Scaffold(
         topBar = {
             TopBarWithLogo(
-                userName = "Natanael Almeida",
+                userViewModel = userViewModel,
                 onMenuClick = {
                     scope.launch { drawerState.open() }
                 },
-                openDrawer = openDrawer
+                openDrawer = openDrawer,
+                navController = navController
 
             )
         },
@@ -99,7 +104,7 @@ fun Fornecedores(
                     onClick = { fabMenuExpanded = !fabMenuExpanded },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White,
-                    modifier = Modifier.size(56.dp)
+                    modifier = Modifier.size(56.dp) .background(Color.White)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Menu", tint = Color.White)
 
@@ -108,20 +113,21 @@ fun Fornecedores(
                 DropdownMenu(
                     expanded = fabMenuExpanded,
                     onDismissRequest = { fabMenuExpanded = false },
-                    offset = DpOffset(x = 0.dp, y = (-56).dp)
+                    offset = DpOffset(x = 0.dp, y = (-56).dp),
+                    modifier = Modifier.background(Color.White)
                 ) {
                     DropdownMenuItem(
                         text = {
                             Text(
                                 "Cadastrar Fornecedor",
-                                color = Color.White,
+                                color = Color.Black,
                                 modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp)
 
                             )
                         },
                         onClick = { navController.navigate("SupplierRegistration/-1") },
                         modifier = Modifier
-                            .background(Color(0xFF004AAD), shape = RoundedCornerShape(8.dp))
+                            .background(Color.White, shape = RoundedCornerShape(8.dp))
                             .clip(RoundedCornerShape(8.dp))
                     )
                 }
@@ -146,7 +152,9 @@ fun Fornecedores(
                         Icon(Icons.Default.FilterList, contentDescription = "Filtrar",tint = MaterialTheme.colorScheme.primary)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true, // <-- impede quebra de linha
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search) // opcional: muda Enter para "Buscar"
             )
             Spacer(modifier = Modifier.height(16.dp))
             // Cabeçalho

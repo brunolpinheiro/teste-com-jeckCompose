@@ -19,7 +19,7 @@ data class Products(
     @ColumnInfo(name = "Preço Promocional") val promotionalPrice: Float?,
     @ColumnInfo(name = "Quantidade") val quantity: Int,
     @ColumnInfo(name = "Marca") val brand: String,
-    @ColumnInfo(name = "Fornecedor") val supplier: String?,
+    @ColumnInfo(name = "Fornecedor") val supplierId: Int? = null,
     @ColumnInfo(name = "status") val status: Boolean,
     @ColumnInfo(name = "barcode") val barcode: String?,
     @ColumnInfo(name = "cost") val cost: Float?,

@@ -1,5 +1,5 @@
 // UserViewModel.kt
-package com.example.carteogest.login
+package com.example.carteogest.datadb.data_db.login
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -96,4 +96,32 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
     suspend fun getById(id: Int): User? {
         return repo.getById(id)
     }
+    fun getAllUsers() {
+        viewModelScope.launch {
+            _users.value = repo.getUsers()
+        }
+    }
+    fun changePassword(oldPassword: String, newPassword: String, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val nomeUsuario = _usuarioLogado.value
+            if (nomeUsuario == null) {
+                callback(false)
+                return@launch
+            }
+
+            val user = repo.findUserByName(nomeUsuario) // busca objeto User pelo nome
+            if (user != null && user.senha == oldPassword) {
+                val updatedUser = user.copy(senha = newPassword)
+                repo.updateUser(updatedUser) // atualiza no banco
+                callback(true)
+            } else {
+                callback(false)
+            }
+        }
+    }
+    suspend fun getPermissao(nome: String): String? {
+        return repo.getPermissao(nome)
+    }
+
+
 }
