@@ -1,18 +1,12 @@
-
-
-
-
 package com.example.carteogest.ui.telas.inicio
 
 import android.content.Context
 import android.content.Intent
-
 import android.content.pm.PackageManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import android.Manifest
-
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,12 +37,10 @@ import com.example.carteogest.datadb.data_db.products.ProductViewModel
 import com.example.carteogest.menu.TopBarWithLogo
 import kotlinx.coroutines.delay
 import android.os.Build
-
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.work.*
 import com.example.carteogest.workers.ExpirationCheckWorker
 import java.util.concurrent.TimeUnit
 import android.util.Log
@@ -63,43 +55,29 @@ data class ValidityGroup(
     val fabrication: String
 )
 
-fun sendExpirationNotification(context: Context, products: List<ValidityGroup>) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-    ) {
-        Log.e("NotificationUtils", "Permissão POST_NOTIFICATIONS não concedida")
-        return
+enum class ValidityStatus {
+    NEAR_EXPIRY, // Perto de vencer (amarelo)
+    EXPIRED,     // Vencido (vermelho)
+    VALID        // Válido (cor padrão)
+}
+
+fun checkValidityStatus(date: String): ValidityStatus {
+    try {
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val validityDate = dateFormat.parse(date) ?: return ValidityStatus.VALID
+        val currentDate = Date()
+        val diffInMillis = validityDate.time - currentDate.time
+        val diffInDays = diffInMillis / (1000 * 60 * 60 * 24)
+
+        return when {
+            diffInDays < 0 -> ValidityStatus.EXPIRED // Já passou da validade
+            diffInDays in 0..7 -> ValidityStatus.NEAR_EXPIRY // Perto de vencer (0 a 7 dias)
+            else -> ValidityStatus.VALID // Validade normal
+        }
+    } catch (e: Exception) {
+        Log.e("dash", "Falha ao verificar a data ${e.message}")
+        return ValidityStatus.VALID
     }
-
-    val notificationManager = NotificationManagerCompat.from(context)
-    val intent = Intent(context, MainActivity::class.java).apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-    }
-    val pendingIntent = PendingIntent.getActivity(
-        context,
-        0,
-        intent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
-    // Construir a mensagem da notificação com base nos produtos
-    val productNames = products.joinToString(", ") { it.productName }
-    val contentText = if (products.isNotEmpty()) {
-        "Os seguintes produtos estão próximos do vencimento: $productNames"
-    } else {
-        "Nenhum produto próximo do vencimento."
-    }
-
-    val notification = NotificationCompat.Builder(context, MainActivity.NOTIFICATION_CHANNEL_ID)
-        .setSmallIcon(android.R.drawable.ic_dialog_alert) // Substitua pelo ícone do seu app
-        .setContentTitle("Produtos Próximos do Vencimento")
-        .setContentText(contentText)
-        .setPriority(NotificationCompat.PRIORITY_HIGH)
-        .setContentIntent(pendingIntent)
-        .setAutoCancel(true)
-        .build()
-
-    notificationManager.notify("expiration_notification".hashCode(), notification)
 }
 
 @Composable
@@ -108,8 +86,6 @@ fun DashboardScreen(
     userViewModel: UserViewModel,
     navController: NavController
 ) {
-
-
     val context = LocalContext.current
     var currentTime by remember { mutableStateOf(getCurrentTime()) }
     val scope = rememberCoroutineScope()
@@ -117,82 +93,29 @@ fun DashboardScreen(
     val viewModel = remember { database?.let { ProductViewModel(it.productsDao(), it.validityDao()) } }
     val products by viewModel?.products ?: remember { mutableStateOf(emptyList()) }
     val productsWithValidities by viewModel?.produtosComValidades?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
-    var lastNotificationTime by remember { mutableStateOf(0L) } // Rastreia o tempo da última notificação
+    var lastNotificationTime by remember { mutableStateOf(0L) }
+    val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
 
 
-    fun verificationDay(date: String): Boolean {
-        try {
-            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val validityDate = dateFormat.parse(date) ?: return false
-            val currentDate = Date()
-            val diffInMillis = validityDate.time - currentDate.time
-            val diffInDays = diffInMillis / (1000 * 60 * 60 * 24)
-            return diffInDays in 0..7
-        } catch (e: Exception) {
-            Log.e("dash", "Falha ao verificar a data ${e.message}")
-            return false
-        }
+    LaunchedEffect(Unit) {
+       while(true){
+           currentTime = getCurrentTime()
+           delay(1000)
+       }
+
     }
 
 
-    // Atualizar hora a cada segundo e agendar Worker
     LaunchedEffect(Unit) {
         try {
             viewModel?.getAll()
             Log.d("dash", "produtos carregados")
-            // Agendar WorkManager para verificar validades diariamente
-            val workRequest = PeriodicWorkRequestBuilder<ExpirationCheckWorker>(1, TimeUnit.DAYS)
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-                        .build()
-                )
-                .build()
-            WorkManager.getInstance(context)
-                .enqueueUniquePeriodicWork(
-                    "expiration_check",
-                    ExistingPeriodicWorkPolicy.KEEP,
-                    workRequest
-                )
         } catch (e: Exception) {
             Log.e("dash", "falha ao carregar os produtos: ${e.message}")
         }
 
-        val notificationInterval = 2 * 60 * 1000L // 2 minutos em milissegundos
-
-        while (true) {
-            currentTime = getCurrentTime()
-            val currentTimeMillis = System.currentTimeMillis()
-
-            // Verificar se passou 2 minutos desde a última notificação
-            if (currentTimeMillis - lastNotificationTime >= notificationInterval && productsWithValidities.isNotEmpty()) {
-                // Filtrar produtos com validade próxima
-                val expiringProducts = productsWithValidities.flatMap { productWithValidities ->
-                    productWithValidities.validades
-                        .filter { validity -> verificationDay(validity.validity) }
-                        .map { validity ->
-                            ValidityGroup(
-                                productName = productWithValidities.product.name,
-                                validity = validity.validity,
-                                fabrication = validity.fabrication
-                            )
-                        }
-                }
-                // Enviar notificação apenas se houver produtos próximos do vencimento
-                if (expiringProducts.isNotEmpty()) {
-                    sendExpirationNotification(context, expiringProducts)
-                    Log.d("dash", "Notificação de vencimento enviada às $currentTime")
-                    lastNotificationTime = currentTimeMillis // Atualiza o tempo da última notificação
-                }
-            }
-            delay(1000L)
-        }
     }
-
-
-
-    val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
 
     Scaffold(
         topBar = {
@@ -210,7 +133,6 @@ fun DashboardScreen(
                 .background(Color.White)
                 .padding(paddingValues)
         ) {
-            // Cabeçalho dinâmico
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -252,13 +174,11 @@ fun DashboardScreen(
                             )
                         }
                     }
-                    
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Card de KPI (Total do Estoque)
             KpiCard(
                 title = "Total do Estoque",
                 value = "${products.size} un.",
@@ -272,7 +192,6 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Seção de produtos com validade
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -295,7 +214,7 @@ fun DashboardScreen(
                             ),
                             color = MaterialTheme.colorScheme.onPrimary
                         )
-                        TextButton(onClick = { /* Ação para ver todas */ }) {
+                        TextButton(onClick = { navController.navigate("TelaValidades") }) {
                             Text(
                                 "Ver Todas",
                                 style = MaterialTheme.typography.labelLarge,
@@ -322,12 +241,13 @@ fun DashboardScreen(
                             items(productsWithValidities) { productWithValidities ->
                                 val validities = productWithValidities.validades
                                 validities.forEach { validity ->
-                                    AnimatedVisibility(
-                                        visible = verificationDay(validity.validity),
-                                        enter = fadeIn(animationSpec = tween(500)),
-                                        exit = fadeOut(animationSpec = tween(500))
-                                    ) {
-                                        if (verificationDay(validity.validity)) {
+                                    val validityStatus = checkValidityStatus(validity.validity)
+                                    if (validityStatus != ValidityStatus.VALID) {
+                                        AnimatedVisibility(
+                                            visible = validityStatus == ValidityStatus.NEAR_EXPIRY || validityStatus == ValidityStatus.EXPIRED,
+                                            enter = fadeIn(animationSpec = tween(500)),
+                                            exit = fadeOut(animationSpec = tween(500))
+                                        ) {
                                             Card(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
@@ -371,7 +291,11 @@ fun DashboardScreen(
                                                             Text(
                                                                 text = "Validade: ${validity.validity}",
                                                                 style = MaterialTheme.typography.bodyMedium,
-                                                                color = Color.Red
+                                                                color = when (validityStatus) {
+                                                                    ValidityStatus.NEAR_EXPIRY -> Color(0xFFFFD700)
+                                                                    ValidityStatus.EXPIRED -> Color.Red
+                                                                    else -> MaterialTheme.colorScheme.onSurface
+                                                                }
                                                             )
                                                             Text(
                                                                 text = "Fabricação: ${validity.fabrication}",
@@ -380,39 +304,19 @@ fun DashboardScreen(
                                                             )
                                                         }
                                                         Text(
-                                                            text = "Perto de Vencer",
+                                                            text = when (validityStatus) {
+                                                                ValidityStatus.NEAR_EXPIRY -> "Perto de Vencer"
+                                                                ValidityStatus.EXPIRED -> "Vencido"
+                                                                else -> ""
+                                                            },
                                                             style = MaterialTheme.typography.labelMedium.copy(
                                                                 fontWeight = FontWeight.Bold
                                                             ),
-                                                            color = Color.Red
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            Card(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(RoundedCornerShape(12.dp))
-                                                    .border(
-                                                        1.dp,
-                                                        Color.Gray,
-                                                        RoundedCornerShape(12.dp)
-                                                    ),
-                                                colors = CardDefaults.cardColors(containerColor = Color.White)
-                                            ) {
-                                                Column(modifier = Modifier.padding(12.dp)) {
-                                                    Row(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                                        verticalAlignment = Alignment.CenterVertically
-                                                    ) {
-                                                        Text(
-                                                            text = "Nenhum produto perto da validade",
-                                                            style = MaterialTheme.typography.titleMedium.copy(
-                                                                fontWeight = FontWeight.Bold
-                                                            ),
-                                                            color = MaterialTheme.colorScheme.onSurface
+                                                            color = when (validityStatus) {
+                                                                ValidityStatus.NEAR_EXPIRY -> Color(0xFFFFD700)
+                                                                ValidityStatus.EXPIRED -> Color.Red
+                                                                else -> MaterialTheme.colorScheme.onSurface
+                                                            }
                                                         )
                                                     }
                                                 }
@@ -483,5 +387,3 @@ fun KpiCard(
         }
     }
 }
-
-
