@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+<<<<<<< HEAD
     <style name="Theme.Test_2" parent="android:Theme.Material.Light.NoActionBar" />
+=======
+    <style name="Theme.CarteoGest" parent="android:Theme.Material.Light.NoActionBar" />
+>>>>>>> master
 </resources>
