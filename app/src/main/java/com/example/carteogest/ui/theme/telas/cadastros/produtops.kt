@@ -1,7 +1,13 @@
 // ProdutoCadastroScreen.kt
 package com.example.carteogest.ui.telas.ControleEstoque
 
+import android.Manifest
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -39,12 +45,19 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import android.content.pm.PackageManager
+
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.carteogest.MainActivity
 import com.example.carteogest.datadb.data_db.login.UserViewModel
 import com.example.carteogest.datadb.data_db.supplier.Supplier
 import com.example.carteogest.factory.ProductViewModelFactory
 import com.example.carteogest.factory.supplierViewModelFactory
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,6 +110,7 @@ fun ProdutoCadastroScreen(
 ) {
 
     //permissao
+    val context =  LocalContext.current
     val usuarioNome by userViewModel.usuarioLogado.collectAsState()
     var permissao by remember { mutableStateOf<String?>(null) }
 
@@ -106,7 +120,37 @@ fun ProdutoCadastroScreen(
         }
     }
 
-    val context = LocalContext.current
+    fun sendProductAddedNotification(context: Context, productName: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.e("NotificationUtils", "Permissão POST_NOTIFICATIONS não concedida")
+            return
+        }
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, MainActivity.NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // Substitua pelo ícone do seu app
+            .setContentTitle("Produto Cadastrado")
+            .setContentText("O produto $productName foi cadastrado com sucesso!")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(productName.hashCode(), notification)
+    }
+
     val database = remember { AppDatabase.getDatabase(context, CoroutineScope(Dispatchers.IO)) }
     val supllierViewModel: SupplierViewModel = viewModel(
         factory = supplierViewModelFactory(database.supplierDao()))
@@ -494,6 +538,7 @@ fun ProdutoCadastroScreen(
                                             // Novo produto
                                             val produtoFinal = produto.copy(supplierId = fornecedorSelecionado?.uid)
                                             productViewModel.insertProduct(produtoFinal)
+                                            sendProductAddedNotification(context, produtoFinal.name)
                                         } else {
                                             // Atualização
                                             val produtoFinal = produto.copy(supplierId = fornecedorSelecionado?.uid)

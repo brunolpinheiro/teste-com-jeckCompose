@@ -55,6 +55,9 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.0")
     // Room
     implementation("androidx.room:room-runtime:2.7.2")
+    implementation(libs.androidx.media3.common.ktx)
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation("androidx.core:core:1.13.1")
 
     kapt("androidx.room:room-compiler:2.7.2")
 

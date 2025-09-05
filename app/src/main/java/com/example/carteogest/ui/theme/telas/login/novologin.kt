@@ -25,9 +25,11 @@ fun LoginScreen(
     val usuarioLogado by viewModel.usuarioLogado.collectAsState()
     val authState by viewModel.authState.collectAsState()
 
+
     LaunchedEffect(authState) {
         if (authState == AuthState.AUTHENTICATED) {
-            onLoginSuccess() // navega para a dashboard
+            onLoginSuccess()
+
         }
     }
 

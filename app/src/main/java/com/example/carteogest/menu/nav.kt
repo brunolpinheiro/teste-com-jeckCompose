@@ -16,7 +16,6 @@ import com.example.carteogest.ui.telas.login.LoginScreen
 import com.example.carteogest.ui.telas.config.ConectPrinters
 import com.example.carteogest.ui.telas.ControleEstoque.StockAdjustmentScreen
 import com.example.carteogest.ui.telas.ControleEstoque.RelatoriosEstoqueScreen
-import com.example.carteogest.ui.telas.inicio.DashboardScreen
 import com.example.carteogest.ui.telas.ControleEstoque.DashboardScreenum
 import com.example.carteogest.ui.telas.inicio.Fornecedores
 import com.example.carteogest.ui.telas.ControleEstoque.TelaValidades
@@ -27,11 +26,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.carteogest.dashboard.DashboardFromSideMenu
 import com.example.carteogest.datadb.data_db.AppDatabase
 import com.example.carteogest.datadb.data_db.products.ProductViewModel
 import com.example.carteogest.datadb.data_db.supplier.SupplierViewModel
 import com.example.carteogest.factory.ProductViewModelFactory
+import com.example.carteogest.ui.telas.inicio.DashboardScreen
 import com.example.carteogest.factory.supplierViewModelFactory
 import com.example.carteogest.iu.telas.ControleEstoque.SupplierRegistration
 import com.example.carteogest.datadb.data_db.login.UserPrefs
@@ -129,14 +128,7 @@ fun MainApp() {
 
 
                             }
-                            composable("DashboardFromSideMenu") {
-                                DashboardFromSideMenu(
-                                    viewModel = BluetoothViewModel
 
-                                )
-
-
-                            }
 
 
                             composable("dash1") {
