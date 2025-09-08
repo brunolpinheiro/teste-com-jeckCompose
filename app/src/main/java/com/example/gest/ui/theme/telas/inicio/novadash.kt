@@ -1,4 +1,6 @@
-package com.example.carteogest.ui.telas.inicio
+package com.example.gest.ui.telas.inicio
+
+
 
 import android.content.Context
 import android.content.Intent
@@ -41,11 +43,11 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 import java.util.concurrent.TimeUnit
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import android.app.PendingIntent
 
 data class ValidityGroup(
     val productName: String,
@@ -88,18 +90,16 @@ fun DashboardScreen(
     var currentTime by remember { mutableStateOf(getCurrentTime()) }
     val scope = rememberCoroutineScope()
     val database = remember { AppDatabase.getDatabase(context, scope) }
-    val viewModel =
-        remember { database?.let { ProductViewModel(it.productsDao(), it.validityDao()) } }
+    val viewModel = remember { database?.let { ProductViewModel(it.productsDao(), it.validityDao()) } }
     val products by viewModel?.products ?: remember { mutableStateOf(emptyList()) }
-    val productsWithValidities by viewModel?.produtosComValidades?.collectAsState(initial = emptyList())
-        ?: remember { mutableStateOf(emptyList()) }
+    val productsWithValidities by viewModel?.produtosComValidades?.collectAsState(initial = emptyList()) ?: remember { mutableStateOf(emptyList()) }
     var lastNotificationTime by remember { mutableStateOf(0L) }
     val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
 
     LaunchedEffect(Unit) {
-        while (true) {
+        while(true){
             currentTime = getCurrentTime()
             delay(1000)
         }
@@ -292,10 +292,7 @@ fun DashboardScreen(
                                                                 text = "Validade: ${validity.validity}",
                                                                 style = MaterialTheme.typography.bodyMedium,
                                                                 color = when (validityStatus) {
-                                                                    ValidityStatus.NEAR_EXPIRY -> Color(
-                                                                        0xFFFFD700
-                                                                    )
-
+                                                                    ValidityStatus.NEAR_EXPIRY -> Color(0xFFFFD700)
                                                                     ValidityStatus.EXPIRED -> Color.Red
                                                                     else -> MaterialTheme.colorScheme.onSurface
                                                                 }
@@ -316,10 +313,7 @@ fun DashboardScreen(
                                                                 fontWeight = FontWeight.Bold
                                                             ),
                                                             color = when (validityStatus) {
-                                                                ValidityStatus.NEAR_EXPIRY -> Color(
-                                                                    0xFFFFD700
-                                                                )
-
+                                                                ValidityStatus.NEAR_EXPIRY -> Color(0xFFFFD700)
                                                                 ValidityStatus.EXPIRED -> Color.Red
                                                                 else -> MaterialTheme.colorScheme.onSurface
                                                             }
@@ -335,6 +329,61 @@ fun DashboardScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+private fun getCurrentTime(): String {
+    return SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+}
+
+@Composable
+fun KpiCard(
+    title: String,
+    value: String,
+    color: Color,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier
+) {
+    Card(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            .background(Color.White),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = color
+            )
         }
     }
 }
